@@ -13,12 +13,7 @@ import {
 
 const menuItems = [
   { icon: Home, label: "HOME", active: true },
-  { icon: Briefcase, label: "WORKPLACE" },
-  { icon: CheckSquare, label: "APPROVAL" },
-  { icon: Users, label: "EMPLOYEE SERVICE" },
-  { icon: ShieldAlert, label: "RISK MANAGEMENT" },
-  { icon: FileWarning, label: "SAFETY REPORTING" },
-  { icon: LayoutGrid, label: "Organization Chart" },
+  { icon: ShieldAlert, label: "위험성평가" },
   { icon: User, label: "My Page" },
   { icon: Settings, label: "Edit widget" },
 ];
@@ -29,10 +24,10 @@ export default function PortalSidebar() {
       {/* Logo */}
       <div className="px-4 py-4 border-b border-primary-foreground/20">
         <h1 className="text-primary-foreground font-bold text-lg tracking-tight">
-          SafetyPortal
+          EHS System
         </h1>
         <p className="text-primary-foreground/70 text-[10px] tracking-widest mt-0.5">
-          SAFETY FIRST
+          Environment Health Safety
         </p>
       </div>
 
