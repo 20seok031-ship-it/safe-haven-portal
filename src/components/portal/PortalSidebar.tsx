@@ -24,10 +24,10 @@ export default function PortalSidebar() {
       {/* Logo */}
       <div className="px-4 py-4 border-b border-primary-foreground/20">
         <h1 className="text-primary-foreground font-bold text-lg tracking-tight">
-          SafetyPortal
+          EHS System
         </h1>
         <p className="text-primary-foreground/70 text-[10px] tracking-widest mt-0.5">
-          SAFETY FIRST
+          Environment Health Safety
         </p>
       </div>
 
