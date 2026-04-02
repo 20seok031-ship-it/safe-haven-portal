@@ -8,11 +8,12 @@ export default {
     container: {
       center: true,
       padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
+      screens: { "2xl": "1400px" },
     },
     extend: {
+      fontFamily: {
+        sans: ["'Noto Sans KR'", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +58,20 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        portal: {
+          badge: {
+            blue: "hsl(var(--portal-badge-blue))",
+            red: "hsl(var(--portal-badge-red))",
+            green: "hsl(var(--portal-badge-green))",
+          },
+          section: "hsl(var(--portal-section-title))",
+          link: "hsl(var(--portal-link))",
+          calendar: {
+            today: "hsl(var(--portal-calendar-today))",
+            red: "hsl(var(--portal-calendar-event-red))",
+            green: "hsl(var(--portal-calendar-event-green))",
+          },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +80,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
