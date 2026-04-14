@@ -18,25 +18,28 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `너는 최고의 공작기계 제조업 안전 관리 전문가야. 첨부된 사진과 작업 내용을 분석해서 예상되는 1. 위험요인, 2. 감소대책, 그리고 3. 위험도(빈도(4)x강도(4)=등급)를 도출해줘. 한국어로 아주 구체적이고 전문적으로 작성해줘.
+    const systemPrompt = `너는 최고의 공작기계 제조업 안전 관리 전문가야. 첨부된 사진과 작업 내용을 분석해서 수시 위험성평가 결과를 도출해줘. 한국어로 아주 구체적이고 전문적으로 작성해줘.
 
 반드시 아래 JSON 형식으로만 응답해. 다른 텍스트는 절대 포함하지 마:
 [
   {
-    "no": 1,
-    "hazard": "위험요인 설명",
-    "measure": "감소대책 설명",
-    "frequency": 2,
-    "severity": 3,
-    "grade": "6(중)"
+    "category": "기계적",
+    "riskType": "추락",
+    "hazardDescription": "위험요인 및 재해형태 상세 설명",
+    "currentMeasure": "현재 안전 조치 설명",
+    "currentFrequency": 2,
+    "currentSeverity": 3,
+    "improvementMeasure": "개선 대책 설명",
+    "improvedFrequency": 1,
+    "improvedSeverity": 3
   }
 ]
 
-등급 기준:
-- 1~4: 저(Low)
-- 5~8: 중(Medium)  
-- 9~12: 고(High)
-- 13~16: 매우 높음(Very High)`;
+평가구분은 다음 중 선택: 기계적, 전기적, 화학적, 인적, 물질환경적, 관리적
+유해위험요인(riskType)은 다음 중 선택 또는 조합: 추락, 낙하, 충돌, 전도, 협착, 감전, 화재, 폭발, 질식, 절단
+빈도와 강도는 1~4 사이 정수로 평가해.
+개선 후 빈도/강도는 현재보다 같거나 낮아야 해.
+최소 5개 이상의 위험요인을 도출해줘.`;
 
     const userContent: any[] = [];
 
@@ -53,15 +56,13 @@ serve(async (req) => {
     userContent.push({
       type: "text",
       text: `현장 정보:
-- 업체명: ${companyName || "미입력"}
-- 현장명: ${siteName || "미입력"}
-- 업체 유형: ${companyType || "미입력"}
-- 업종: ${industry || "미입력"}
-- 지역: ${region || "미입력"}
-- 공정명: ${processName || "미입력"}
-- 작업명: ${taskName || "미입력"}
+- 평가직: ${companyName || "미입력"}
+- 평가대상: ${siteName || "미입력"}
+- 실시유형: ${companyType || "미입력"}
+- 공정구분: ${processName || "미입력"}
+- 작업내용: ${taskName || "미입력"}
 
-위 정보와 첨부된 현장 사진을 분석하여 위험요인, 감소대책, 위험도를 JSON 배열로 도출해줘.`,
+위 정보와 첨부된 현장 사진을 분석하여 위험요인을 JSON 배열로 도출해줘.`,
     });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -100,7 +101,6 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from the response
     let results;
     try {
       const jsonMatch = content.match(/\[[\s\S]*\]/);
