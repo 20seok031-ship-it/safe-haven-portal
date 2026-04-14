@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { FileText, Upload, Loader2, X, CalendarIcon } from "lucide-react";
+import { FileText, Upload, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,15 +11,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface RiskResult {
-  no: number;
-  hazard: string;
-  measure: string;
-  frequency: number;
-  severity: number;
-  grade: string;
-}
+import RiskResultsTable, { type RiskResult } from "./RiskResultsTable";
 
 export default function SiteInfoForm() {
   const [assessType, setAssessType] = useState("");
