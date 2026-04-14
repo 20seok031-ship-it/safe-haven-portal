@@ -311,49 +311,12 @@ export default function SiteInfoForm() {
         </div>
       </div>
 
-      {/* Results Table */}
       {results.length > 0 && (
-        <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground">위험성 평가 결과</h2>
-              <p className="text-sm text-muted-foreground">AI가 식별한 {results.length}개의 위험요인</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700 w-12">No.</th>
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700">위험요인</th>
-                  <th className="text-left py-3 px-4 font-semibold text-slate-700">감소대책</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700 w-20">빈도</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700 w-20">강도</th>
-                  <th className="text-center py-3 px-4 font-semibold text-slate-700 w-28">위험등급</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-4 text-slate-600 font-medium">{r.no}</td>
-                    <td className="py-3 px-4 text-slate-800">{r.hazard}</td>
-                    <td className="py-3 px-4 text-slate-800">{r.measure}</td>
-                    <td className="py-3 px-4 text-center font-medium text-slate-700">{r.frequency}</td>
-                    <td className="py-3 px-4 text-center font-medium text-slate-700">{r.severity}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getGradeColor(r.grade)}`}>
-                        {r.grade}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <RiskResultsTable
+          results={results}
+          formInfo={{ assessRole, processCategory, assessDate, assessor, assessTarget }}
+          onUpdateResult={handleUpdateResult}
+        />
       )}
 
       {isAnalyzing && (
