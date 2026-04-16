@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 import RiskResultsTable, { type RiskResult } from "./RiskResultsTable";
 
 export default function SiteInfoForm() {
@@ -44,32 +45,26 @@ export default function SiteInfoForm() {
     setUploadedImages((prev) => {
       const next = [...prev];
       next[index] = "";
-      return next.filter(Boolean).length === 0 ? [] : next;
+      return next;
     });
   };
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent, slot: number) => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (file) handleImageUpload(file, slot);
-    },
-    []
-  );
+  const handleDrop = useCallback((e: React.DragEvent, slot: number) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageUpload(file, slot);
+  }, []);
 
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      const items = e.clipboardData.items;
-      for (const item of items) {
-        if (item.type.startsWith("image/")) {
-          const file = item.getAsFile();
-          const slot = uploadedImages[0] ? 1 : 0;
-          if (file && slot < 2) handleImageUpload(file, slot);
-        }
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        const slot = uploadedImages[0] ? 1 : 0;
+        if (file && slot < 2) handleImageUpload(file, slot);
       }
-    },
-    [uploadedImages]
-  );
+    }
+  }, [uploadedImages]);
 
   const handleReset = () => {
     setAssessType("");
@@ -81,6 +76,7 @@ export default function SiteInfoForm() {
     setTaskDescription("");
     setUploadedImages([]);
     setResults([]);
+    toast.success("모든 입력이 초기화되었습니다.");
   };
 
   const handleAnalyze = async () => {
@@ -103,8 +99,6 @@ export default function SiteInfoForm() {
           companyName: assessRole,
           siteName: assessTarget,
           companyType: assessType,
-          industry: "",
-          region: "",
           processName: processCategory,
           taskName: taskDescription,
           imageBase64: validImages[0],
@@ -135,6 +129,41 @@ export default function SiteInfoForm() {
     });
   };
 
+  const handlePrint = () => {
+    if (results.length === 0) {
+      toast.error("출력할 분석 결과가 없습니다.");
+      return;
+    }
+    window.print();
+  };
+
+  const handleExportExcel = () => {
+    if (results.length === 0) {
+      toast.error("저장할 분석 결과가 없습니다.");
+      return;
+    }
+
+    const rows = results.map((r) => ({
+      "평가구분": r.category,
+      "유해위험원인": r.riskType,
+      "위험요인 및 재해형태": r.hazardDescription,
+      "현재 안전 조치": r.currentMeasure,
+      "빈도(현재)": r.currentFrequency,
+      "강도(현재)": r.currentSeverity,
+      "위험도(현재)": r.currentFrequency * r.currentSeverity,
+      "개선 대책": r.improvementMeasure,
+      "빈도(개선후)": r.improvedFrequency,
+      "강도(개선후)": r.improvedSeverity,
+      "위험도(개선후)": r.improvedFrequency * r.improvedSeverity,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "위험성평가");
+    XLSX.writeFile(wb, `위험성평가_${assessDate}.xlsx`);
+    toast.success("Excel 파일이 다운로드되었습니다.");
+  };
+
   const renderUploadSlot = (slot: number) => {
     const img = uploadedImages[slot];
     if (img) {
@@ -143,7 +172,7 @@ export default function SiteInfoForm() {
           <img src={img} alt={`현장 이미지 ${slot + 1}`} className="max-h-[180px] object-contain rounded-lg" />
           <button
             onClick={() => removeImage(slot)}
-            className="absolute top-2 right-2 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
+            className="absolute top-2 right-2 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors print:hidden"
           >
             <X className="w-4 h-4 text-slate-500" />
           </button>
@@ -178,7 +207,7 @@ export default function SiteInfoForm() {
 
   return (
     <div className="space-y-6" onPaste={handlePaste}>
-      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto">
+      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
@@ -202,18 +231,16 @@ export default function SiteInfoForm() {
                 "위험 식별"
               )}
             </Button>
-            <Button variant="outline" className="rounded-full px-6">결과 저장</Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handleExportExcel}>결과 저장</Button>
             <Button variant="outline" className="rounded-full px-6" onClick={handleReset}>결과 초기화</Button>
-            <Button variant="outline" className="rounded-full px-6">PDF 보고서</Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handlePrint}>PDF 보고서</Button>
           </div>
         </div>
 
-        {/* Row 1: 실시유형 + 평가대상 */}
+        {/* Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              실시유형 <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-semibold text-foreground mb-2">실시유형 <span className="text-red-500">*</span></label>
             <Select value={assessType} onValueChange={setAssessType}>
               <SelectTrigger><SelectValue placeholder="선택하세요" /></SelectTrigger>
               <SelectContent>
@@ -224,86 +251,43 @@ export default function SiteInfoForm() {
             </Select>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              평가대상 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예시 : 산업재해명, 신규 장비명, 신규 공정명"
-              value={assessTarget}
-              onChange={(e) => setAssessTarget(e.target.value)}
-            />
+            <label className="block text-sm font-semibold text-foreground mb-2">평가대상 <span className="text-red-500">*</span></label>
+            <Input placeholder="예시 : 산업재해명, 신규 장비명, 신규 공정명" value={assessTarget} onChange={(e) => setAssessTarget(e.target.value)} />
           </div>
         </div>
 
-        {/* Row 2: 평가일시 + 평가직 + 평가자 */}
+        {/* Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mt-6">
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              평가일시
-            </label>
-            <div className="relative">
-              <Input
-                type="date"
-                value={assessDate}
-                onChange={(e) => setAssessDate(e.target.value)}
-                className="pr-10"
-              />
-            </div>
+            <label className="block text-sm font-semibold text-foreground mb-2">평가일시</label>
+            <Input type="date" value={assessDate} onChange={(e) => setAssessDate(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              평가직 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예시 : 생산 O팀, OOO직"
-              value={assessRole}
-              onChange={(e) => setAssessRole(e.target.value)}
-            />
+            <label className="block text-sm font-semibold text-foreground mb-2">평가직 <span className="text-red-500">*</span></label>
+            <Input placeholder="예시 : 생산 O팀, OOO직" value={assessRole} onChange={(e) => setAssessRole(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              평가자 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예시 : OOO 직장 외 O명"
-              value={assessor}
-              onChange={(e) => setAssessor(e.target.value)}
-            />
+            <label className="block text-sm font-semibold text-foreground mb-2">평가자 <span className="text-red-500">*</span></label>
+            <Input placeholder="예시 : OOO 직장 외 O명" value={assessor} onChange={(e) => setAssessor(e.target.value)} />
           </div>
         </div>
 
-        {/* Row 3: 공정구분 + 작업내용 */}
+        {/* Row 3 */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-x-8 gap-y-5 mt-6">
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              공정구분 <span className="text-red-500">*</span>
-            </label>
-            <Input
-              placeholder="예시 : 연마, Base 등"
-              value={processCategory}
-              onChange={(e) => setProcessCategory(e.target.value)}
-            />
+            <label className="block text-sm font-semibold text-foreground mb-2">공정구분 <span className="text-red-500">*</span></label>
+            <Input placeholder="예시 : 연마, Base 등" value={processCategory} onChange={(e) => setProcessCategory(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-foreground mb-2">
-              작업내용
-            </label>
-            <Input
-              placeholder="예시 : 금형 교체 작업, 프레스 가공 등"
-              value={taskDescription}
-              onChange={(e) => setTaskDescription(e.target.value)}
-            />
+            <label className="block text-sm font-semibold text-foreground mb-2">작업내용</label>
+            <Input placeholder="예시 : 금형 교체 작업, 프레스 가공 등" value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)} />
           </div>
         </div>
 
         {/* Image Upload */}
         <div className="mt-8">
-          <label className="block text-sm font-semibold text-foreground mb-1">
-            현장 이미지 <span className="text-red-500">*</span>
-          </label>
-          <p className="text-xs text-muted-foreground mb-3">
-            현장 사진 2장을 각각 1장씩 업로드할 수 있습니다. 위험요인과 권고 조치안을 생성합니다.
-          </p>
+          <label className="block text-sm font-semibold text-foreground mb-1">현장 이미지 <span className="text-red-500">*</span></label>
+          <p className="text-xs text-muted-foreground mb-3">현장 사진 2장을 각각 1장씩 업로드할 수 있습니다.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {renderUploadSlot(0)}
             {renderUploadSlot(1)}
@@ -314,13 +298,14 @@ export default function SiteInfoForm() {
       {results.length > 0 && (
         <RiskResultsTable
           results={results}
-          formInfo={{ assessRole, processCategory, assessDate, assessor, assessTarget }}
+          formInfo={{ assessRole, processCategory, assessDate, assessor, assessTarget, assessType }}
+          uploadedImages={uploadedImages}
           onUpdateResult={handleUpdateResult}
         />
       )}
 
       {isAnalyzing && (
-        <div className="bg-white rounded-xl border border-border shadow-sm p-12 max-w-[1200px] mx-auto flex flex-col items-center gap-4">
+        <div className="bg-white rounded-xl border border-border shadow-sm p-12 max-w-[1200px] mx-auto flex flex-col items-center gap-4 print:hidden">
           <Loader2 className="w-10 h-10 animate-spin text-slate-400" />
           <p className="text-sm text-muted-foreground">AI가 현장 사진을 분석하고 있습니다...</p>
           <p className="text-xs text-muted-foreground">약 10~30초 소요됩니다.</p>
