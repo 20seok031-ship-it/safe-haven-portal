@@ -44,6 +44,19 @@ function calcAvg(results: RiskResult[], type: "current" | "improved") {
   return (sum / results.length).toFixed(2);
 }
 
+/** Group consecutive rows by category for rowspan merging */
+function getCategorySpans(results: RiskResult[]) {
+  const spans: { start: number; count: number }[] = [];
+  let i = 0;
+  while (i < results.length) {
+    let j = i + 1;
+    while (j < results.length && results[j].category === results[i].category) j++;
+    spans.push({ start: i, count: j - i });
+    i = j;
+  }
+  return spans;
+}
+
 const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 2. 사고발생원인에 대한 재발방지대책
 3. 유해위험요인 재발굴
@@ -57,14 +70,20 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
   const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800";
   const tdC = `${td} text-center`;
   const inp = "h-7 text-xs text-center border-0 bg-transparent p-0 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
-  const txtInp = "h-auto min-h-[28px] text-xs border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400 resize-none";
+  const txtInp = "text-xs border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400 resize-none overflow-hidden";
 
   const assessTypeLabel = formInfo.assessType === "industrial_accident" ? "산업재해 발생"
     : formInfo.assessType === "new_equipment" ? "신규 장비 설치"
     : formInfo.assessType === "new_process" ? "신규 공정 도입" : formInfo.assessType;
 
+  const categorySpans = getCategorySpans(results);
+  const spanMap = new Map<number, number>();
+  categorySpans.forEach(s => spanMap.set(s.start, s.count));
+
+  const validImages = uploadedImages.filter(Boolean);
+
   return (
-    <div id="risk-report" className="bg-white rounded-xl border border-border shadow-sm p-4 md:p-6 max-w-[1200px] mx-auto overflow-x-auto print:shadow-none print:border-0 print:p-0 print:max-w-none">
+    <div id="risk-report" className="bg-white rounded-xl border border-border shadow-sm p-4 md:p-6 max-w-[1200px] mx-auto overflow-x-auto print:shadow-none print:border-0 print:p-0 print:max-w-none print:rounded-none">
       {/* Header Table */}
       <table className="w-full border-collapse border border-slate-400 mb-0">
         <tbody>
@@ -84,11 +103,11 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
             <td rowSpan={2} className={`${th} w-[80px]`}>평균<br/>위험도</td>
             <td rowSpan={2} className="border border-slate-400 p-0 w-[140px]">
               <div className="flex h-full">
-                <div className="flex-1 text-center py-2 bg-slate-50 border-r border-slate-400">
+                <div className="flex-1 text-center py-2 bg-slate-100 border-r border-slate-400">
                   <div className="text-[10px] text-slate-500">현 재</div>
                   <div className="font-bold text-base text-slate-800">{calcAvg(results, "current")}</div>
                 </div>
-                <div className="flex-1 text-center py-2 bg-slate-50">
+                <div className="flex-1 text-center py-2 bg-slate-100">
                   <div className="text-[10px] text-slate-500">개선 후</div>
                   <div className="font-bold text-base text-slate-800">{calcAvg(results, "improved")}</div>
                 </div>
@@ -127,19 +146,35 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
           {results.map((r, i) => {
             const curRisk = r.currentFrequency * r.currentSeverity;
             const impRisk = r.improvedFrequency * r.improvedSeverity;
+            const span = spanMap.get(i);
+            const isFirst = span !== undefined;
+            const isSpanned = !isFirst && categorySpans.some(s => i > s.start && i < s.start + s.count);
+
             return (
               <tr key={i} className="hover:bg-slate-50/50 print:hover:bg-transparent">
-                <td className={tdC}>
-                  <input className={inp} value={r.category} onChange={(e) => onUpdateResult(i, "category", e.target.value)} />
-                </td>
+                {/* Merged category cell */}
+                {isFirst && (
+                  <td className={`${tdC} align-middle font-semibold`} rowSpan={span}>
+                    <input className={inp} value={r.category} onChange={(e) => {
+                      // Update all rows in this span
+                      for (let k = i; k < i + span; k++) onUpdateResult(k, "category", e.target.value);
+                    }} />
+                  </td>
+                )}
+                {/* Skip cell for spanned rows */}
+                {!isFirst && !isSpanned && (
+                  <td className={tdC}>
+                    <input className={inp} value={r.category} onChange={(e) => onUpdateResult(i, "category", e.target.value)} />
+                  </td>
+                )}
                 <td className={tdC}>
                   <input className={inp} value={r.riskType} onChange={(e) => onUpdateResult(i, "riskType", e.target.value)} />
                 </td>
-                <td className={td}>
-                  <textarea className={txtInp} value={r.hazardDescription} onChange={(e) => onUpdateResult(i, "hazardDescription", e.target.value)} rows={2} />
+                <td className={`${td} align-top`}>
+                  <textarea className={txtInp} value={r.hazardDescription} onChange={(e) => { onUpdateResult(i, "hazardDescription", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
                 </td>
-                <td className={td}>
-                  <textarea className={txtInp} value={r.currentMeasure} onChange={(e) => onUpdateResult(i, "currentMeasure", e.target.value)} rows={2} />
+                <td className={`${td} align-top`}>
+                  <textarea className={txtInp} value={r.currentMeasure} onChange={(e) => { onUpdateResult(i, "currentMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.currentFrequency} onChange={(e) => onUpdateResult(i, "currentFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />
@@ -150,8 +185,8 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                 <td className={tdC}>
                   <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${getGradeColor(curRisk)}`}>{curRisk}</span>
                 </td>
-                <td className={td}>
-                  <textarea className={txtInp} value={r.improvementMeasure} onChange={(e) => onUpdateResult(i, "improvementMeasure", e.target.value)} rows={2} />
+                <td className={`${td} align-top`}>
+                  <textarea className={txtInp} value={r.improvementMeasure} onChange={(e) => { onUpdateResult(i, "improvementMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.improvedFrequency} onChange={(e) => onUpdateResult(i, "improvedFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />
@@ -179,19 +214,18 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
         </thead>
         <tbody>
           <tr>
-            <td className="border border-slate-400 p-2 align-top">
-              <div className="flex flex-col gap-2 min-h-[160px]">
-                {uploadedImages.filter(Boolean).map((img, i) => (
-                  <img key={i} src={img} alt={`현장사진${i + 1}`} className="w-full max-h-[120px] object-contain rounded" />
-                ))}
-                {uploadedImages.filter(Boolean).length === 0 && (
-                  <div className="text-xs text-slate-400 text-center py-8">업로드된 사진 없음</div>
+            <td className="border border-slate-400 p-0 align-top">
+              <div className={`flex ${validImages.length === 2 ? 'flex-row' : 'flex-col'} min-h-[200px] h-full`}>
+                {validImages.length > 0 ? validImages.map((img, i) => (
+                  <img key={i} src={img} alt={`현장사진${i + 1}`} className={`${validImages.length === 2 ? 'w-1/2' : 'w-full'} h-[200px] object-cover`} />
+                )) : (
+                  <div className="text-xs text-slate-400 text-center py-8 w-full flex items-center justify-center">업로드된 사진 없음</div>
                 )}
               </div>
             </td>
             <td className="border border-slate-400 p-0 align-top">
               <textarea
-                className="w-full h-full min-h-[160px] text-xs p-3 border-0 resize-none focus:outline-none focus:ring-1 focus:ring-slate-400"
+                className="w-full h-full min-h-[200px] text-xs p-3 border-0 resize-none focus:outline-none focus:ring-1 focus:ring-slate-400"
                 value={educationContent}
                 onChange={(e) => setEducationContent(e.target.value)}
               />

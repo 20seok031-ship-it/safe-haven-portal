@@ -97,22 +97,38 @@
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    background: white !important;
   }
 
   .print\:hidden {
     display: none !important;
   }
 
+  /* Hide everything except the report */
+  body > * {
+    visibility: hidden;
+  }
+
+  #risk-report,
+  #risk-report * {
+    visibility: visible !important;
+  }
+
   #risk-report {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
     max-width: none !important;
     border-radius: 0 !important;
+    margin: 0 !important;
   }
 
   @page {
     size: A4 landscape;
-    margin: 10mm;
+    margin: 8mm;
   }
 }

@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import RiskResultsTable, { type RiskResult } from "./RiskResultsTable";
 
 export default function SiteInfoForm() {
@@ -137,30 +138,146 @@ export default function SiteInfoForm() {
     window.print();
   };
 
-  const handleExportExcel = () => {
+  const assessTypeLabel = assessType === "industrial_accident" ? "산업재해 발생"
+    : assessType === "new_equipment" ? "신규 장비 설치"
+    : assessType === "new_process" ? "신규 공정 도입" : assessType;
+
+  const handleExportExcel = async () => {
     if (results.length === 0) {
       toast.error("저장할 분석 결과가 없습니다.");
       return;
     }
 
-    const rows = results.map((r) => ({
-      "평가구분": r.category,
-      "유해위험원인": r.riskType,
-      "위험요인 및 재해형태": r.hazardDescription,
-      "현재 안전 조치": r.currentMeasure,
-      "빈도(현재)": r.currentFrequency,
-      "강도(현재)": r.currentSeverity,
-      "위험도(현재)": r.currentFrequency * r.currentSeverity,
-      "개선 대책": r.improvementMeasure,
-      "빈도(개선후)": r.improvedFrequency,
-      "강도(개선후)": r.improvedSeverity,
-      "위험도(개선후)": r.improvedFrequency * r.improvedSeverity,
-    }));
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("위험성평가");
 
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "위험성평가");
-    XLSX.writeFile(wb, `위험성평가_${assessDate}.xlsx`);
+    // Column widths
+    ws.columns = [
+      { width: 10 }, // A: 평가구분
+      { width: 12 }, // B: 유해위험원인
+      { width: 30 }, // C: 위험요인
+      { width: 28 }, // D: 현재 안전 조치
+      { width: 6 },  // E: 빈도
+      { width: 6 },  // F: 강도
+      { width: 8 },  // G: 위험도
+      { width: 28 }, // H: 개선 대책
+      { width: 6 },  // I: 빈도
+      { width: 6 },  // J: 강도
+      { width: 8 },  // K: 위험도
+    ];
+
+    const hdrFill: ExcelJS.FillPattern = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+    const hdrFont: Partial<ExcelJS.Font> = { bold: true, size: 9 };
+    const thinBorder: Partial<ExcelJS.Borders> = {
+      top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" }
+    };
+    const centerAlign: Partial<ExcelJS.Alignment> = { horizontal: "center", vertical: "middle", wrapText: true };
+
+    // Row 1: Header info
+    ws.mergeCells("A1:B1");
+    ws.getCell("A1").value = `평가직: ${assessRole}`;
+    ws.mergeCells("C1:H1");
+    ws.getCell("C1").value = `수시 위험성평가 (${assessTypeLabel} : ${assessTarget})`;
+    ws.getCell("C1").alignment = { horizontal: "center", vertical: "middle" };
+    ws.getCell("C1").font = { bold: true, size: 14 };
+    ws.mergeCells("I1:K1");
+    ws.getCell("I1").value = `평가자: ${assessor}`;
+
+    // Row 2
+    ws.mergeCells("A2:B2");
+    ws.getCell("A2").value = `공정구분: ${processCategory}`;
+    ws.mergeCells("I2:K2");
+    const curAvg = results.length > 0 ? (results.reduce((a, r) => a + r.currentFrequency * r.currentSeverity, 0) / results.length).toFixed(2) : "0";
+    const impAvg = results.length > 0 ? (results.reduce((a, r) => a + r.improvedFrequency * r.improvedSeverity, 0) / results.length).toFixed(2) : "0";
+    ws.getCell("I2").value = `평균위험도 현재:${curAvg} / 개선후:${impAvg}`;
+
+    // Row 3
+    ws.mergeCells("A3:B3");
+    ws.getCell("A3").value = `평가일시: ${assessDate}`;
+
+    // Style rows 1-3
+    for (let r = 1; r <= 3; r++) {
+      for (let c = 1; c <= 11; c++) {
+        const cell = ws.getCell(r, c);
+        cell.border = thinBorder;
+        cell.font = cell.font?.bold ? cell.font : { size: 9 };
+      }
+    }
+
+    // Row 4-5: Table headers
+    const headers1 = ["평가구분", "유해위험원인", "위험요인 및 재해형태", "현재 안전 조치", "현재 위험도", "", "", "개선 대책", "개선후위험도", "", ""];
+    const headers2 = ["", "", "", "", "빈도", "강도", "위험도", "", "빈도", "강도", "위험도"];
+
+    ws.addRow(headers1);
+    ws.addRow(headers2);
+
+    // Merge header cells
+    ws.mergeCells("A4:A5"); ws.mergeCells("B4:B5"); ws.mergeCells("C4:C5"); ws.mergeCells("D4:D5");
+    ws.mergeCells("E4:G4"); ws.mergeCells("H4:H5"); ws.mergeCells("I4:K4");
+
+    for (let r = 4; r <= 5; r++) {
+      for (let c = 1; c <= 11; c++) {
+        const cell = ws.getCell(r, c);
+        cell.fill = hdrFill;
+        cell.font = hdrFont;
+        cell.alignment = centerAlign;
+        cell.border = thinBorder;
+      }
+    }
+
+    // Data rows with category merging
+    let dataStartRow = 6;
+    let i = 0;
+    while (i < results.length) {
+      let j = i + 1;
+      while (j < results.length && results[j].category === results[i].category) j++;
+      const spanCount = j - i;
+
+      for (let k = i; k < j; k++) {
+        const r = results[k];
+        const curRisk = r.currentFrequency * r.currentSeverity;
+        const impRisk = r.improvedFrequency * r.improvedSeverity;
+        const row = ws.addRow([
+          k === i ? r.category : "",
+          r.riskType,
+          r.hazardDescription,
+          r.currentMeasure,
+          r.currentFrequency,
+          r.currentSeverity,
+          curRisk,
+          r.improvementMeasure,
+          r.improvedFrequency,
+          r.improvedSeverity,
+          impRisk,
+        ]);
+
+        for (let c = 1; c <= 11; c++) {
+          const cell = row.getCell(c);
+          cell.border = thinBorder;
+          cell.font = { size: 9 };
+          cell.alignment = c <= 2 || (c >= 5 && c <= 7) || (c >= 9 && c <= 11) ? centerAlign : { vertical: "middle", wrapText: true };
+        }
+
+        // Color-code risk cells
+        const colorRisk = (cell: ExcelJS.Cell, score: number) => {
+          if (score >= 9) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEF4444" } };
+          else if (score >= 5) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFACC15" } };
+          else cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF22C55E" } };
+          cell.font = { size: 9, bold: true, color: { argb: score >= 5 && score < 9 ? "FF1E293B" : "FFFFFFFF" } };
+        };
+        colorRisk(row.getCell(7), curRisk);
+        colorRisk(row.getCell(11), impRisk);
+      }
+
+      if (spanCount > 1) {
+        const startR = dataStartRow + i;
+        ws.mergeCells(startR, 1, startR + spanCount - 1, 1);
+      }
+      i = j;
+    }
+
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf]), `위험성평가_${assessDate}.xlsx`);
     toast.success("Excel 파일이 다운로드되었습니다.");
   };
 
@@ -217,19 +334,8 @@ export default function SiteInfoForm() {
             <h2 className="text-xl font-bold text-foreground">수시 위험성평가</h2>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  분석 중...
-                </>
-              ) : (
-                "위험 식별"
-              )}
+            <Button className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6" onClick={handleAnalyze} disabled={isAnalyzing}>
+              {isAnalyzing ? (<><Loader2 className="w-4 h-4 animate-spin" />분석 중...</>) : "위험 식별"}
             </Button>
             <Button variant="outline" className="rounded-full px-6" onClick={handleExportExcel}>결과 저장</Button>
             <Button variant="outline" className="rounded-full px-6" onClick={handleReset}>결과 초기화</Button>
