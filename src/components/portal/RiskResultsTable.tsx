@@ -211,10 +211,10 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                   <input className={inp} value={r.riskType} onChange={(e) => onUpdateResult(i, "riskType", e.target.value)} />
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.hazardDescription} onChange={(e) => { onUpdateResult(i, "hazardDescription", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.hazardDescription} onChange={(v) => onUpdateResult(i, "hazardDescription", v)} />
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.currentMeasure} onChange={(e) => { onUpdateResult(i, "currentMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.currentMeasure} onChange={(v) => onUpdateResult(i, "currentMeasure", v)} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.currentFrequency} onChange={(e) => onUpdateResult(i, "currentFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />
