@@ -1,4 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+/** Auto-resizing textarea that grows with content from initial render — no click required. */
+function AutoTextarea({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+  useEffect(() => {
+    resize();
+  }, [value]);
+  useEffect(() => {
+    // Resize after fonts/layout settle
+    const id = window.requestAnimationFrame(resize);
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+  return (
+    <textarea
+      ref={ref}
+      className={className}
+      value={value}
+      rows={1}
+      onChange={(e) => {
+        onChange(e.target.value);
+        resize();
+      }}
+      style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
+    />
+  );
+}
 
 export interface RiskResult {
   category: string;
