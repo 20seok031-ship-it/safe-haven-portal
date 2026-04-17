@@ -226,7 +226,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                   <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${getGradeColor(curRisk)}`}>{curRisk}</span>
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.improvementMeasure} onChange={(e) => { onUpdateResult(i, "improvementMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.improvementMeasure} onChange={(v) => onUpdateResult(i, "improvementMeasure", v)} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.improvedFrequency} onChange={(e) => onUpdateResult(i, "improvedFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />
