@@ -1,4 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+/** Auto-resizing textarea that grows with content from initial render — no click required. */
+function AutoTextarea({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+  useEffect(() => {
+    resize();
+  }, [value]);
+  useEffect(() => {
+    // Resize after fonts/layout settle
+    const id = window.requestAnimationFrame(resize);
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+  return (
+    <textarea
+      ref={ref}
+      className={className}
+      value={value}
+      rows={1}
+      onChange={(e) => {
+        onChange(e.target.value);
+        resize();
+      }}
+      style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
+    />
+  );
+}
 
 export interface RiskResult {
   category: string;
@@ -66,11 +106,11 @@ const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult }: RiskResultsTableProps) {
   const [educationContent, setEducationContent] = useState(DEFAULT_EDUCATION);
 
-  const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800";
-  const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800";
-  const tdC = `${td} text-center`;
+  const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800 align-middle";
+  const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800 align-top whitespace-normal break-words";
+  const tdC = `${td} text-center align-middle`;
   const inp = "h-7 text-xs text-center border-0 bg-transparent p-0 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
-  const txtInp = "text-xs border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400 resize-none overflow-hidden";
+  const txtInp = "text-xs leading-relaxed border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
 
   const assessTypeLabel = formInfo.assessType === "industrial_accident" ? "산업재해 발생"
     : formInfo.assessType === "new_equipment" ? "신규 장비 설치"
@@ -171,10 +211,10 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                   <input className={inp} value={r.riskType} onChange={(e) => onUpdateResult(i, "riskType", e.target.value)} />
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.hazardDescription} onChange={(e) => { onUpdateResult(i, "hazardDescription", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.hazardDescription} onChange={(v) => onUpdateResult(i, "hazardDescription", v)} />
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.currentMeasure} onChange={(e) => { onUpdateResult(i, "currentMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.currentMeasure} onChange={(v) => onUpdateResult(i, "currentMeasure", v)} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.currentFrequency} onChange={(e) => onUpdateResult(i, "currentFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />
@@ -186,7 +226,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                   <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${getGradeColor(curRisk)}`}>{curRisk}</span>
                 </td>
                 <td className={`${td} align-top`}>
-                  <textarea className={txtInp} value={r.improvementMeasure} onChange={(e) => { onUpdateResult(i, "improvementMeasure", e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} onFocus={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} rows={2} />
+                  <AutoTextarea className={txtInp} value={r.improvementMeasure} onChange={(v) => onUpdateResult(i, "improvementMeasure", v)} />
                 </td>
                 <td className={tdC}>
                   <input type="number" min={1} max={4} className={inp} value={r.improvedFrequency} onChange={(e) => onUpdateResult(i, "improvedFrequency", Math.min(4, Math.max(1, parseInt(e.target.value) || 1)))} />

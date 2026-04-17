@@ -125,6 +125,32 @@
     max-width: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Prevent rows from being split across pages */
+  #risk-report table {
+    page-break-inside: auto;
+    border-collapse: collapse !important;
+  }
+  #risk-report tr,
+  #risk-report td,
+  #risk-report th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  #risk-report thead {
+    display: table-header-group;
+  }
+  /* Ensure textareas show full content when printed */
+  #risk-report textarea {
+    overflow: visible !important;
+    height: auto !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    border: none !important;
+    resize: none !important;
+    background: transparent !important;
   }
 
   @page {
