@@ -109,8 +109,20 @@ export default function SiteInfoForm() {
       if (error) throw error;
 
       if (data?.results && data.results.length > 0) {
-        setResults(data.results);
-        toast.success(`${data.results.length}개의 위험요인이 식별되었습니다.`);
+        // Group by category: preserve first-seen order, then bring all same-category rows together
+        const categoryOrder: string[] = [];
+        const buckets = new Map<string, RiskResult[]>();
+        for (const r of data.results as RiskResult[]) {
+          const key = r.category || "기타";
+          if (!buckets.has(key)) {
+            buckets.set(key, []);
+            categoryOrder.push(key);
+          }
+          buckets.get(key)!.push(r);
+        }
+        const grouped = categoryOrder.flatMap((k) => buckets.get(k)!);
+        setResults(grouped);
+        toast.success(`${grouped.length}개의 위험요인이 식별되었습니다.`);
       } else {
         toast.warning("분석 결과를 파싱하지 못했습니다. 다시 시도해주세요.");
       }
