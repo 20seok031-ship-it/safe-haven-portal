@@ -106,11 +106,11 @@ const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult }: RiskResultsTableProps) {
   const [educationContent, setEducationContent] = useState(DEFAULT_EDUCATION);
 
-  const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800";
-  const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800";
-  const tdC = `${td} text-center`;
+  const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800 align-middle";
+  const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800 align-top whitespace-normal break-words";
+  const tdC = `${td} text-center align-middle`;
   const inp = "h-7 text-xs text-center border-0 bg-transparent p-0 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
-  const txtInp = "text-xs border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400 resize-none overflow-hidden";
+  const txtInp = "text-xs leading-relaxed border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
 
   const assessTypeLabel = formInfo.assessType === "industrial_accident" ? "산업재해 발생"
     : formInfo.assessType === "new_equipment" ? "신규 장비 설치"
