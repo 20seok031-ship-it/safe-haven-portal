@@ -147,37 +147,34 @@ export default function SiteInfoForm() {
       toast.error("출력할 분석 결과가 없습니다.");
       return;
     }
+    const report = document.getElementById("risk-report");
+    if (!report) { window.print(); return; }
 
-    // 인쇄 전: risk-report 내 모든 textarea/input 높이 강제 해제
-    const report = document.getElementById('risk-report');
-    if (report) {
-      const scrollables = report.querySelectorAll('textarea, input, [class*="overflow"], [class*="scroll"]');
-      const origStyles: { el: HTMLElement; overflow: string; height: string; maxHeight: string }[] = [];
+    const textareas = report.querySelectorAll("textarea");
+    const origHeights: string[] = [];
+    textareas.forEach((el) => {
+      origHeights.push(el.style.height);
+      el.style.overflow = "visible";
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    });
 
-      scrollables.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        origStyles.push({
-          el: htmlEl,
-          overflow: htmlEl.style.overflow,
-          height: htmlEl.style.height,
-          maxHeight: htmlEl.style.maxHeight,
-        });
-        htmlEl.style.overflow = 'visible';
-        htmlEl.style.height = 'auto';
-        htmlEl.style.maxHeight = 'none';
-      });
+    const spinners = report.querySelectorAll('input[type="number"]');
+    const origTypes: string[] = [];
+    spinners.forEach((el) => {
+      origTypes.push((el as HTMLInputElement).type);
+      (el as HTMLInputElement).type = "text";
+    });
 
-      window.print();
+    window.print();
 
-      // 인쇄 후: 원래 스타일 복원
-      origStyles.forEach(({ el, overflow, height, maxHeight }) => {
-        el.style.overflow = overflow;
-        el.style.height = height;
-        el.style.maxHeight = maxHeight;
-      });
-    } else {
-      window.print();
-    }
+    textareas.forEach((el, idx) => {
+      el.style.height = origHeights[idx];
+      el.style.overflow = "hidden";
+    });
+    spinners.forEach((el, idx) => {
+      (el as HTMLInputElement).type = origTypes[idx];
+    });
   };
 
   const assessTypeLabel = assessType === "industrial_accident" ? "산업재해 발생"
