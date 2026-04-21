@@ -147,7 +147,37 @@ export default function SiteInfoForm() {
       toast.error("출력할 분석 결과가 없습니다.");
       return;
     }
-    window.print();
+
+    // 인쇄 전: risk-report 내 모든 textarea/input 높이 강제 해제
+    const report = document.getElementById('risk-report');
+    if (report) {
+      const scrollables = report.querySelectorAll('textarea, input, [class*="overflow"], [class*="scroll"]');
+      const origStyles: { el: HTMLElement; overflow: string; height: string; maxHeight: string }[] = [];
+
+      scrollables.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        origStyles.push({
+          el: htmlEl,
+          overflow: htmlEl.style.overflow,
+          height: htmlEl.style.height,
+          maxHeight: htmlEl.style.maxHeight,
+        });
+        htmlEl.style.overflow = 'visible';
+        htmlEl.style.height = 'auto';
+        htmlEl.style.maxHeight = 'none';
+      });
+
+      window.print();
+
+      // 인쇄 후: 원래 스타일 복원
+      origStyles.forEach(({ el, overflow, height, maxHeight }) => {
+        el.style.overflow = overflow;
+        el.style.height = height;
+        el.style.maxHeight = maxHeight;
+      });
+    } else {
+      window.print();
+    }
   };
 
   const assessTypeLabel = assessType === "industrial_accident" ? "산업재해 발생"
