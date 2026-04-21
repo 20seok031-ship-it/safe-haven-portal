@@ -135,7 +135,8 @@
     max-height: none !important;
   }
   #risk-report thead { display: table-header-group !important; }
-  #risk-report textarea {
+  #risk-report textarea,
+  #risk-report textarea[style] {
     overflow: visible !important;
     height: auto !important;
     min-height: 0 !important;
@@ -148,6 +149,7 @@
     box-shadow: none !important;
     padding: 2px !important;
     width: 100% !important;
+    display: block !important;
   }
   #risk-report input[type="number"]::-webkit-inner-spin-button,
   #risk-report input[type="number"]::-webkit-outer-spin-button { display: none !important; }
