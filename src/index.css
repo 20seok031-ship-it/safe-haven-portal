@@ -103,19 +103,9 @@
     width: 100% !important;
     overflow: visible !important;
   }
-
-  .print\:hidden,
-  nav,
-  aside,
-  header.app-header,
-  [data-print-hide="true"] {
-    display: none !important;
-  }
-
+  .print\:hidden, nav, aside, header.app-header, [data-print-hide="true"] { display: none !important; }
   body > * { visibility: hidden; }
-  #risk-report,
-  #risk-report * { visibility: visible !important; }
-
+  #risk-report, #risk-report * { visibility: visible !important; }
   #risk-report {
     position: absolute !important;
     top: 0 !important;
@@ -125,23 +115,16 @@
     transform: none !important;
     zoom: 1 !important;
     font-size: 10pt !important;
+    overflow: visible !important;
   }
-
-  /* 핵심 수정: table-layout을 auto로 변경해서 셀이 내용에 맞게 늘어나도록 */
   #risk-report table {
     page-break-inside: auto !important;
     border-collapse: collapse !important;
     table-layout: auto !important;
     width: 100% !important;
   }
-
-  #risk-report tr {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-  }
-
-  #risk-report td,
-  #risk-report th {
+  #risk-report tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+  #risk-report td, #risk-report th {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     white-space: normal !important;
@@ -151,16 +134,8 @@
     height: auto !important;
     max-height: none !important;
   }
-
-  #risk-report thead {
-    display: table-header-group !important;
-  }
-
-  /* textarea/input: 숨겨진 내용까지 전부 펼치기 */
-  #risk-report textarea,
-  #risk-report input[type="text"],
-  #risk-report input {
-    display: block !important;
+  #risk-report thead { display: table-header-group !important; }
+  #risk-report textarea {
     overflow: visible !important;
     height: auto !important;
     min-height: 0 !important;
@@ -171,27 +146,12 @@
     background: transparent !important;
     resize: none !important;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 2px !important;
     width: 100% !important;
   }
-
-  /* 스크롤 컨테이너 전부 해제 */
-  #risk-report *[style*="overflow"],
-  #risk-report [class*="overflow"],
-  #risk-report [class*="scroll"] {
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
-  }
-
-  #risk-report img {
-    page-break-inside: avoid !important;
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  @page {
-    size: A4 landscape;
-    margin: 10mm;
-  }
+  #risk-report input[type="number"]::-webkit-inner-spin-button,
+  #risk-report input[type="number"]::-webkit-outer-spin-button { display: none !important; }
+  #risk-report input { border: none !important; background: transparent !important; box-shadow: none !important; }
+  #risk-report img { page-break-inside: avoid !important; max-width: 100% !important; height: auto !important; }
+  @page { size: A4 landscape; margin: 10mm; }
 }
