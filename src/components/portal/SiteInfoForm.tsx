@@ -150,30 +150,46 @@ export default function SiteInfoForm() {
     const report = document.getElementById("risk-report");
     if (!report) { window.print(); return; }
 
-    const textareas = report.querySelectorAll("textarea");
-    const origHeights: string[] = [];
+    // 1) textarea: 인라인 height 제거 → scrollHeight로 재설정 (각 셀 전체 내용 노출)
+    const textareas = Array.from(report.querySelectorAll("textarea")) as HTMLTextAreaElement[];
+    const origTextareaStyles = textareas.map((el) => ({
+      height: el.style.height,
+      overflow: el.style.overflow,
+      minHeight: el.style.minHeight,
+      maxHeight: el.style.maxHeight,
+    }));
     textareas.forEach((el) => {
-      origHeights.push(el.style.height);
       el.style.overflow = "visible";
+      el.style.minHeight = "0";
+      el.style.maxHeight = "none";
       el.style.height = "auto";
+      // 강제 reflow 후 실제 콘텐츠 높이 적용
       el.style.height = el.scrollHeight + "px";
     });
 
-    const spinners = report.querySelectorAll('input[type="number"]');
-    const origTypes: string[] = [];
-    spinners.forEach((el) => {
-      origTypes.push((el as HTMLInputElement).type);
-      (el as HTMLInputElement).type = "text";
-    });
+    // 2) number input의 spin 버튼 숨기려고 임시로 type 변경
+    const spinners = Array.from(report.querySelectorAll('input[type="number"]')) as HTMLInputElement[];
+    const origTypes = spinners.map((el) => el.type);
+    spinners.forEach((el) => { el.type = "text"; });
 
-    window.print();
+    // 3) 인쇄 종료 후 원복
+    const restore = () => {
+      textareas.forEach((el, i) => {
+        el.style.height = origTextareaStyles[i].height;
+        el.style.overflow = origTextareaStyles[i].overflow;
+        el.style.minHeight = origTextareaStyles[i].minHeight;
+        el.style.maxHeight = origTextareaStyles[i].maxHeight;
+      });
+      spinners.forEach((el, i) => { el.type = origTypes[i]; });
+      window.removeEventListener("afterprint", restore);
+    };
+    window.addEventListener("afterprint", restore);
 
-    textareas.forEach((el, idx) => {
-      el.style.height = origHeights[idx];
-      el.style.overflow = "hidden";
-    });
-    spinners.forEach((el, idx) => {
-      (el as HTMLInputElement).type = origTypes[idx];
+    // 다음 프레임에서 인쇄 호출 (레이아웃 반영 보장)
+    requestAnimationFrame(() => {
+      window.print();
+      // 일부 브라우저는 afterprint를 발화하지 않으므로 안전망
+      setTimeout(restore, 1000);
     });
   };
 
