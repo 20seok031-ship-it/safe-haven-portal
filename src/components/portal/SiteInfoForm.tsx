@@ -150,7 +150,6 @@ export default function SiteInfoForm() {
     const report = document.getElementById("risk-report");
     if (!report) { window.print(); return; }
 
-    // 1) textarea: 인라인 height 제거 → scrollHeight로 재설정 (각 셀 전체 내용 노출)
     const textareas = Array.from(report.querySelectorAll("textarea")) as HTMLTextAreaElement[];
     const origTextareaStyles = textareas.map((el) => ({
       height: el.style.height,
@@ -163,16 +162,13 @@ export default function SiteInfoForm() {
       el.style.minHeight = "0";
       el.style.maxHeight = "none";
       el.style.height = "auto";
-      // 강제 reflow 후 실제 콘텐츠 높이 적용
       el.style.height = el.scrollHeight + "px";
     });
 
-    // 2) number input의 spin 버튼 숨기려고 임시로 type 변경
     const spinners = Array.from(report.querySelectorAll('input[type="number"]')) as HTMLInputElement[];
     const origTypes = spinners.map((el) => el.type);
     spinners.forEach((el) => { el.type = "text"; });
 
-    // 3) 인쇄 종료 후 원복
     const restore = () => {
       textareas.forEach((el, i) => {
         el.style.height = origTextareaStyles[i].height;
@@ -185,11 +181,8 @@ export default function SiteInfoForm() {
     };
     window.addEventListener("afterprint", restore);
 
-    // 다음 프레임에서 인쇄 호출 (레이아웃 반영 보장)
     requestAnimationFrame(() => {
       window.print();
-      // 일부 브라우저는 afterprint를 발화하지 않으므로 안전망
-      setTimeout(restore, 1000);
     });
   };
 

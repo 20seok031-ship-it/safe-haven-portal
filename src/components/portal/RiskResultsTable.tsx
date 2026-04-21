@@ -26,17 +26,22 @@ function AutoTextarea({
     return () => window.cancelAnimationFrame(id);
   }, []);
   return (
-    <textarea
-      ref={ref}
-      className={className}
-      value={value}
-      rows={1}
-      onChange={(e) => {
-        onChange(e.target.value);
-        resize();
-      }}
-      style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
-    />
+    <>
+      <textarea
+        ref={ref}
+        className={`${className ?? ""} print:hidden`}
+        value={value}
+        rows={1}
+        onChange={(e) => {
+          onChange(e.target.value);
+          resize();
+        }}
+        style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
+      />
+      <div className={`${className ?? ""} hidden print:block`} style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "visible", height: "auto" }}>
+        {value}
+      </div>
+    </>
   );
 }
 
@@ -264,11 +269,16 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
               </div>
             </td>
             <td className="border border-slate-400 p-0 align-top">
-              <textarea
-                className="w-full h-full min-h-[200px] text-xs p-3 border-0 resize-none focus:outline-none focus:ring-1 focus:ring-slate-400"
-                value={educationContent}
-                onChange={(e) => setEducationContent(e.target.value)}
-              />
+              <>
+                <textarea
+                  className="w-full h-full min-h-[200px] text-xs p-3 border-0 resize-none focus:outline-none focus:ring-1 focus:ring-slate-400 print:hidden"
+                  value={educationContent}
+                  onChange={(e) => setEducationContent(e.target.value)}
+                />
+                <div className="hidden min-h-[200px] w-full p-3 text-xs whitespace-pre-wrap break-words print:block">
+                  {educationContent}
+                </div>
+              </>
             </td>
             <td className="border border-slate-400 p-0 align-top">
               <table className="w-full border-collapse">
