@@ -447,6 +447,7 @@ export default function SiteInfoForm() {
             {renderUploadSlot(1)}
           </div>
         </div>
+        </div>
       </div>
 
       {results.length > 0 && (
