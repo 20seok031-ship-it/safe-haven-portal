@@ -111,11 +111,11 @@ const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult }: RiskResultsTableProps) {
   const [educationContent, setEducationContent] = useState(DEFAULT_EDUCATION);
 
-  const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800 align-middle";
-  const td = "border border-slate-400 py-1 px-2 text-xs text-slate-800 align-top whitespace-normal break-words";
+  const th = "border border-blue-200 py-1.5 px-2 text-xs font-bold text-center bg-[hsl(214_90%_94%)] text-slate-800 align-middle";
+  const td = "border border-blue-200 py-1 px-2 text-xs text-slate-800 align-top whitespace-normal break-words";
   const tdC = `${td} text-center align-middle`;
-  const inp = "h-7 text-xs text-center border-0 bg-transparent p-0 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
-  const txtInp = "text-xs leading-relaxed border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-slate-400";
+  const inp = "h-7 text-xs text-center border-0 bg-transparent p-0 w-full focus-visible:ring-1 focus-visible:ring-blue-400";
+  const txtInp = "text-xs leading-relaxed border-0 bg-transparent p-1 w-full focus-visible:ring-1 focus-visible:ring-blue-400";
 
   const assessTypeLabel = formInfo.assessType === "industrial_accident" ? "산업재해 발생"
     : formInfo.assessType === "new_equipment" ? "신규 장비 설치"
@@ -128,7 +128,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
   const validImages = uploadedImages.filter(Boolean);
 
   return (
-    <div id="risk-report" className="bg-white rounded-xl border border-border shadow-sm p-4 md:p-6 max-w-[1200px] mx-auto overflow-x-auto print:shadow-none print:border-0 print:p-0 print:max-w-none print:rounded-none">
+    <div id="risk-report" className="bg-white rounded-lg border border-blue-100 shadow-sm p-4 md:p-6 max-w-[1400px] mx-auto overflow-x-auto print:shadow-none print:border-0 print:p-0 print:max-w-none print:rounded-none">
       {/* Header Table */}
       <table className="w-full border-collapse border border-slate-400 mb-0">
         <tbody>
