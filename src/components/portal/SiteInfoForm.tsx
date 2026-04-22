@@ -427,12 +427,12 @@ export default function SiteInfoForm() {
         </div>
 
         {/* Row 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-x-8 gap-y-5 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mt-6">
           <div>
             <label className="block text-sm font-semibold text-foreground mb-2">공정구분 <span className="text-red-500">*</span></label>
             <Input placeholder="예시 : 연마, Base 등" value={processCategory} onChange={(e) => setProcessCategory(e.target.value)} />
           </div>
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-foreground mb-2">작업내용</label>
             <Input placeholder="예시 : 금형 교체 작업, 프레스 가공 등" value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)} />
           </div>
