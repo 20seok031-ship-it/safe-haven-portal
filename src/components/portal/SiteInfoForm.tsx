@@ -371,25 +371,25 @@ export default function SiteInfoForm() {
   };
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto" onPaste={handlePaste}>
-      <div className="bg-white rounded-lg border border-blue-100 shadow-sm print:hidden">
-        {/* Card title bar */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-blue-100 bg-[hsl(214_90%_97%)] rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <span className="w-1 h-5 rounded-sm bg-blue-700" />
-            <h2 className="text-base font-bold text-slate-800">수시 위험성평가</h2>
+    <div className="space-y-6" onPaste={handlePaste}>
+      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-slate-600" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">수시 위험성평가</h2>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button size="sm" className="bg-blue-700 hover:bg-blue-800 text-white rounded-md px-4 h-8 text-xs font-semibold" onClick={handleAnalyze} disabled={isAnalyzing}>
-              {isAnalyzing ? (<><Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />분석 중...</>) : "위험 식별"}
+            <Button className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6" onClick={handleAnalyze} disabled={isAnalyzing}>
+              {isAnalyzing ? (<><Loader2 className="w-4 h-4 animate-spin" />분석 중...</>) : "위험 식별"}
             </Button>
-            <Button size="sm" variant="outline" className="rounded-md px-4 h-8 text-xs border-blue-200 text-slate-700 hover:bg-blue-50" onClick={handleExportExcel}>결과 저장</Button>
-            <Button size="sm" variant="outline" className="rounded-md px-4 h-8 text-xs border-blue-200 text-slate-700 hover:bg-blue-50" onClick={handleReset}>결과 초기화</Button>
-            <Button size="sm" variant="outline" className="rounded-md px-4 h-8 text-xs border-blue-200 text-slate-700 hover:bg-blue-50" onClick={handlePrint}>PDF 보고서</Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handleExportExcel}>결과 저장</Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handleReset}>결과 초기화</Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handlePrint}>PDF 보고서</Button>
           </div>
         </div>
-
-        <div className="p-6 md:p-8">
 
         {/* Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
@@ -446,7 +446,6 @@ export default function SiteInfoForm() {
             {renderUploadSlot(0)}
             {renderUploadSlot(1)}
           </div>
-        </div>
         </div>
       </div>
 
