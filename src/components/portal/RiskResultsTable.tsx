@@ -134,7 +134,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
         <tbody>
           <tr>
             <td className={`${th} w-[80px]`}>평가직</td>
-            <td className={`${td} w-[120px]`}>{formInfo.assessRole || "-"}</td>
+            <td className={`${td} w-[140px]`}>{formInfo.assessRole || "-"}</td>
             <td rowSpan={3} className="border border-slate-400 text-center align-middle px-4 min-w-[200px]">
               <div className="text-lg font-bold text-slate-900">수시 위험성평가</div>
               <div className="text-sm text-slate-600 mt-1">({assessTypeLabel} : {formInfo.assessTarget || "-"})</div>
@@ -143,8 +143,8 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
             <td className={`${td} w-[140px]`}>{formInfo.assessor || "-"}</td>
           </tr>
           <tr>
-            <td className={th}>공정구분</td>
-            <td className={td}>{formInfo.processCategory || "-"}</td>
+            <td className={`${th} w-[80px]`}>공정구분</td>
+            <td className={`${td} w-[140px]`}>{formInfo.processCategory || "-"}</td>
             <td rowSpan={2} className={`${th} w-[80px]`}>평균<br/>위험도</td>
             <td rowSpan={2} className="border border-slate-400 p-0 w-[140px]">
               <div className="flex h-full">
@@ -160,8 +160,8 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
             </td>
           </tr>
           <tr>
-            <td className={th}>평가일시</td>
-            <td className={td}>{formInfo.assessDate || "-"}</td>
+            <td className={`${th} w-[80px]`}>평가일시</td>
+            <td className={`${td} w-[140px]`}>{formInfo.assessDate || "-"}</td>
           </tr>
         </tbody>
       </table>
