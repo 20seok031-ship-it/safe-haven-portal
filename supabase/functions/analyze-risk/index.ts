@@ -18,28 +18,32 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `너는 최고의 공작기계 제조업 안전 관리 전문가야. 첨부된 사진과 작업 내용을 분석해서 수시 위험성평가 결과를 도출해줘. 한국어로 아주 구체적이고 전문적으로 작성해줘.
+    const systemPrompt = `너는 20년 경력의 시니어 EHS(환경안전보건) 전문가야. 현장 사진과 작업 내용을 대조하여, '법적 기준(산업안전보건법, KOSHA Guide 등)'과 '실제 사고 시나리오'를 바탕으로 아주 날카롭게 위험을 분석해.
 
-반드시 아래 JSON 형식으로만 응답해. 다른 텍스트는 절대 포함하지 마:
+[분석 및 표현 원칙]
+1. 평가구분(category, 4M): 모든 항목을 반드시 '기계적', '인적', '물질환경적', '관리적' 중 하나로 분류해.
+2. 구체성: "넘어짐 주의" 같은 모호한 표현은 절대 금지. 반드시 "바닥에 돌출된 설비 베이스 벨로우즈에 발이 걸려 넘어질 위험"처럼 [위치] + [원인] + [결과] 구조로 구체적으로 기술해.
+3. 개선대책: '안전교육 실시' 같은 관리적 대책보다, '공학적 개선(방호장치 설치, 인터록 추가, 구조물 보강, 미끄럼방지 처리, 가드 설치 등)'을 최우선으로 제안해. 관리적 대책은 보조적으로만 포함해.
+
+[위험도 산출 로직]
+- 빈도(frequency): 1~5 정수 (1:거의없음 ~ 5:매우빈번)
+- 강도(severity): 1~4 정수 (1:경미 ~ 4:치명적/사망)
+- 현재 위험도 = frequency × severity
+- 개선 대책은 반드시 위험도를 낮추도록 논리적으로 설계해. 개선 후 최종 위험도(빈도×강도)는 반드시 3점 이하가 되어야 해.
+
+[필수 JSON 출력 형식]
+다른 텍스트(설명, 마크다운, 코드블록) 없이 아래 JSON 배열만 출력해. 최소 5개 이상 도출.
 [
   {
     "category": "기계적",
-    "riskType": "추락",
-    "hazardDescription": "위험요인 및 재해형태 상세 설명",
-    "currentMeasure": "현재 안전 조치 설명",
-    "currentFrequency": 2,
-    "currentSeverity": 3,
-    "improvementMeasure": "개선 대책 설명",
-    "improvedFrequency": 1,
-    "improvedSeverity": 3
+    "hazardSource": "추락",
+    "hazardFactor": "장비 상부 점검 시 안전난간 미설치로 작업자가 1.5m 높이에서 추락할 위험",
+    "currentMeasure": "이동식 사다리 사용 및 2인 1조 작업",
+    "frequency": 3,
+    "severity": 3,
+    "improvementMeasure": "장비 상부 둘레에 고정식 안전난간(높이 90cm 이상) 및 발끝막이판 설치, 점검용 작업발판 영구 설치"
   }
-]
-
-평가구분은 다음 중 선택: 기계적, 전기적, 화학적, 인적, 물질환경적, 관리적
-유해위험요인(riskType)은 다음 중 선택 또는 조합: 추락, 낙하, 충돌, 전도, 협착, 감전, 화재, 폭발, 질식, 절단
-빈도와 강도는 1~4 사이 정수로 평가해.
-개선 후 빈도/강도는 현재보다 같거나 낮아야 해.
-최소 5개 이상의 위험요인을 도출해줘.`;
+]`;
 
     const userContent: any[] = [];
 
@@ -62,7 +66,7 @@ serve(async (req) => {
 - 공정구분: ${processName || "미입력"}
 - 작업내용: ${taskName || "미입력"}
 
-위 정보와 첨부된 현장 사진을 분석하여 위험요인을 JSON 배열로 도출해줘.`,
+위 정보와 첨부된 현장 사진을 면밀히 분석하여 최소 5개 이상의 위험요인을 위 지침에 따라 JSON 배열로 도출해줘.`,
     });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -101,14 +105,42 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    let results;
+    let rawResults: any[] = [];
     try {
       const jsonMatch = content.match(/\[[\s\S]*\]/);
-      results = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+      rawResults = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch {
       console.error("Failed to parse AI response:", content);
-      results = [];
+      rawResults = [];
     }
+
+    // Map new schema (hazardSource/hazardFactor/frequency/severity) to existing app schema.
+    // Derive improved frequency/severity to ensure improved risk <= 3.
+    const results = rawResults.map((r: any) => {
+      const curF = Math.min(5, Math.max(1, parseInt(r.frequency ?? r.currentFrequency ?? 2) || 2));
+      const curS = Math.min(4, Math.max(1, parseInt(r.severity ?? r.currentSeverity ?? 2) || 2));
+
+      // Derive improved values: keep severity if possible, lower frequency to 1; ensure product <= 3
+      let impS = curS;
+      let impF = 1;
+      if (impF * impS > 3) {
+        impS = Math.max(1, Math.min(3, curS));
+        impF = 1;
+        if (impF * impS > 3) impS = 3;
+      }
+
+      return {
+        category: r.category ?? "기계적",
+        riskType: r.hazardSource ?? r.riskType ?? "",
+        hazardDescription: r.hazardFactor ?? r.hazardDescription ?? "",
+        currentMeasure: r.currentMeasure ?? "",
+        currentFrequency: curF,
+        currentSeverity: curS,
+        improvementMeasure: r.improvementMeasure ?? "",
+        improvedFrequency: impF,
+        improvedSeverity: impS,
+      };
+    });
 
     return new Response(JSON.stringify({ results, raw: content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
