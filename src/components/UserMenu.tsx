@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, User } from "lucide-react";
+import { ChevronDown, ClipboardList, FileBarChart2, LogOut, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +35,15 @@ export default function UserMenu() {
             <span className="text-xs text-slate-500 font-normal">DN솔루션즈 노사/EHS Part</span>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/assessment")} className="cursor-pointer">
+          <ClipboardList className="w-4 h-4 mr-2" />
+          수시 위험성평가
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/results")} className="cursor-pointer">
+          <FileBarChart2 className="w-4 h-4 mr-2" />
+          실시결과
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
           <LogOut className="w-4 h-4 mr-2" />
