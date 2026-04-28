@@ -220,6 +220,26 @@ export default function SiteInfoForm() {
       return;
     }
 
+    // Persist to local store so it appears in 실시결과 list
+    try {
+      addAssessment({
+        assessType,
+        assessTarget,
+        assessDate,
+        assessRole,
+        assessor,
+        processCategory,
+        taskDescription,
+        uploadedImages,
+        results,
+        status: "완료",
+        averageRisk: calcAverageRisk(results),
+      });
+      toast.success("실시결과 목록에 저장되었습니다.");
+    } catch (e) {
+      console.error(e);
+    }
+
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("위험성평가");
 
