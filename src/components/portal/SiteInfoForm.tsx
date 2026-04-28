@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FileText, Upload, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import RiskResultsTable, { type RiskResult } from "./RiskResultsTable";
+import { addAssessment, getAssessment, calcAverageRisk } from "@/lib/assessmentStore";
 
 export default function SiteInfoForm() {
   const [assessType, setAssessType] = useState("");
@@ -27,6 +29,28 @@ export default function SiteInfoForm() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState<RiskResult[]>([]);
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const [searchParams] = useSearchParams();
+
+  // Load saved assessment when navigated with ?id=
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id) return;
+    const saved = getAssessment(id);
+    if (!saved) {
+      toast.error("저장된 평가를 찾을 수 없습니다.");
+      return;
+    }
+    setAssessType(saved.assessType);
+    setAssessTarget(saved.assessTarget);
+    setAssessDate(saved.assessDate);
+    setAssessRole(saved.assessRole);
+    setAssessor(saved.assessor);
+    setProcessCategory(saved.processCategory);
+    setTaskDescription(saved.taskDescription);
+    setUploadedImages(saved.uploadedImages || []);
+    setResults(saved.results || []);
+    toast.success("저장된 평가를 불러왔습니다.");
+  }, [searchParams]);
 
   const handleImageUpload = (file: File, slot: number) => {
     if (file && file.type.startsWith("image/")) {
@@ -194,6 +218,26 @@ export default function SiteInfoForm() {
     if (results.length === 0) {
       toast.error("저장할 분석 결과가 없습니다.");
       return;
+    }
+
+    // Persist to local store so it appears in 실시결과 list
+    try {
+      addAssessment({
+        assessType,
+        assessTarget,
+        assessDate,
+        assessRole,
+        assessor,
+        processCategory,
+        taskDescription,
+        uploadedImages,
+        results,
+        status: "완료",
+        averageRisk: calcAverageRisk(results),
+      });
+      toast.success("실시결과 목록에 저장되었습니다.");
+    } catch (e) {
+      console.error(e);
     }
 
     const wb = new ExcelJS.Workbook();
