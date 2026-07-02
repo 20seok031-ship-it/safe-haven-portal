@@ -333,14 +333,41 @@ export default function HazardAnalysis() {
               ) : (
                 <div className="space-y-5">
                   {/* 요약 */}
-                  {report.summary && (
-                    <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
-                      <div className="text-xs font-bold text-blue-800 mb-2">요약</div>
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {report.summary}
-                      </p>
+              <div id="hazard-print-report">
+                {/* Print-only header: 사진 + 현장 설명 */}
+                <div className="hidden print:block mb-4">
+                  <div className="rounded-xl border border-slate-300 overflow-hidden">
+                    <div className="grid grid-cols-2">
+                      <div className="p-3 flex items-center justify-center bg-white border-r border-slate-300">
+                        {imageData ? (
+                          <img
+                            src={imageData}
+                            alt="현장 사진"
+                            className="max-h-[240px] w-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-xs text-slate-400">사진 없음</div>
+                        )}
+                      </div>
+                      <div className="p-4 bg-white">
+                        <div className="text-[11px] font-bold text-blue-700 mb-2">현장 설명</div>
+                        <div className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
+                          {siteContext?.trim() || "(입력 없음)"}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                {report.summary && (
+                  <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 print:break-inside-avoid">
+                    <div className="text-xs font-bold text-blue-800 mb-2">요약</div>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                      {report.summary}
+                    </p>
+                  </div>
+                )}
+
 
                   {/* 확인된 사실 */}
                   {report.observedFacts.length > 0 && (
