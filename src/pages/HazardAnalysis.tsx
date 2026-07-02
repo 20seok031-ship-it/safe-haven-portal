@@ -118,6 +118,7 @@ function riskLevelStyle(level: RiskLevel) {
 
 export default function HazardAnalysis() {
   const [imageData, setImageData] = useState<string>("");
+  const [siteContext, setSiteContext] = useState<string>("");
   const [report, setReport] = useState<Report | null>(null);
   const [meta, setMeta] = useState<Meta>({});
   const [loading, setLoading] = useState(false);
@@ -140,6 +141,7 @@ export default function HazardAnalysis() {
 
   const reset = () => {
     setImageData("");
+    setSiteContext("");
     setReport(null);
     setMeta({});
   };
@@ -152,7 +154,11 @@ export default function HazardAnalysis() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-risk", {
-        body: { taskName: "현장 사진 위험요인 분석", imageBase64: imageData },
+        body: {
+          taskName: "현장 사진 위험요인 분석",
+          imageBase64: imageData,
+          siteContext,
+        },
       });
       if (error) throw error;
       const r: Report = {
@@ -183,80 +189,14 @@ export default function HazardAnalysis() {
     }
   };
 
-  const copyText = async () => {
-    if (!report) return;
-    const lines: string[] = [];
-    lines.push("[요약]", report.summary, "");
-    lines.push("[사진에서 확인된 사실]");
-    report.observedFacts.forEach((f) => lines.push(`- ${f}`));
-    lines.push("", "[즉시 조치]");
-    report.immediateActions.forEach((f) => lines.push(`- ${f}`));
-    lines.push("", "[위험요인 및 개선대책]");
-    report.hazards.forEach((h, i) => {
-      lines.push(
-        `\n${i + 1}. ${h.title} [${h.riskLevel}] (빈도 ${h.frequency} × 강도 ${h.severity})`,
-      );
-      lines.push(`- 사전 근거: ${h.evidence}`);
-      lines.push(`- 예상 결과: ${h.expectedOutcome}`);
-      lines.push(`- 확인 방법: ${h.verification}`);
-      CONTROL_STEPS.forEach(({ key, label }) => {
-        const items = h.controls[key];
-        if (items && items.length > 0) {
-          lines.push(`  ${label}`);
-          items.forEach((c) => lines.push(`    • ${c}`));
-        }
-      });
-    });
-    if (report.limitations.length) {
-      lines.push("", "[한계 및 추가 확인]");
-      report.limitations.forEach((f) => lines.push(`- ${f}`));
+  const handlePrint = () => {
+    if (!report) {
+      toast.error("먼저 위험요인 분석을 실행해주세요.");
+      return;
     }
-    await navigator.clipboard.writeText(lines.join("\n"));
-    toast.success("클립보드에 복사했습니다.");
+    window.print();
   };
 
-  const exportExcel = async () => {
-    if (!report) return;
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet("위험요인");
-    ws.columns = [
-      { header: "No", key: "no", width: 4 },
-      { header: "위험요인", key: "title", width: 30 },
-      { header: "위험도", key: "level", width: 10 },
-      { header: "빈도", key: "f", width: 6 },
-      { header: "강도", key: "s", width: 6 },
-      { header: "사전 근거", key: "evidence", width: 40 },
-      { header: "예상 결과", key: "outcome", width: 40 },
-      { header: "확인 방법", key: "verify", width: 40 },
-      { header: "제거", key: "c1", width: 30 },
-      { header: "대체", key: "c2", width: 30 },
-      { header: "공학적", key: "c3", width: 40 },
-      { header: "격리", key: "c4", width: 30 },
-      { header: "관리적", key: "c5", width: 40 },
-      { header: "PPE", key: "c6", width: 30 },
-    ];
-    report.hazards.forEach((h, i) => {
-      ws.addRow({
-        no: i + 1,
-        title: h.title,
-        level: h.riskLevel,
-        f: h.frequency,
-        s: h.severity,
-        evidence: h.evidence,
-        outcome: h.expectedOutcome,
-        verify: h.verification,
-        c1: h.controls.elimination.join("\n"),
-        c2: h.controls.substitution.join("\n"),
-        c3: h.controls.engineering.join("\n"),
-        c4: h.controls.isolation.join("\n"),
-        c5: h.controls.administrative.join("\n"),
-        c6: h.controls.ppe.join("\n"),
-      });
-    });
-    ws.getRow(1).font = { bold: true };
-    const buf = await wb.xlsx.writeBuffer();
-    saveAs(new Blob([buf]), `현장위험요인_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
