@@ -307,7 +307,7 @@ export default function HazardAnalysis() {
 
             {/* Results */}
             <section>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 print:hidden">
                 <h2 className="flex items-center gap-2 text-base font-bold text-slate-800">
                   분석 결과
                 </h2>
@@ -315,23 +315,15 @@ export default function HazardAnalysis() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={copyText}
+                    onClick={handlePrint}
                     disabled={!report}
                     className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                   >
-                    <Copy className="w-3.5 h-3.5" /> 복사
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportExcel}
-                    disabled={!report}
-                    className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+                    <Printer className="w-3.5 h-3.5" /> 인쇄
                   </Button>
                 </div>
               </div>
+
 
               {!report ? (
                 <div className="border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center h-[360px] text-slate-400">
