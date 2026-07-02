@@ -516,6 +516,7 @@ export default function HazardAnalysis() {
                     {meta.imageNote ? ` · 사진 조건: ${meta.imageNote}` : ""}
                   </div>
                 </div>
+                </div>
               )}
             </section>
           </div>
