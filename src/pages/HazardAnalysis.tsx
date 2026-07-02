@@ -5,8 +5,7 @@ import {
   ImagePlus,
   Sparkles,
   RotateCcw,
-  Copy,
-  FileSpreadsheet,
+  Printer,
   ScanSearch,
   X,
   Loader2,
@@ -17,10 +16,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
 
 type RiskLevel = "낮음" | "보통" | "높음" | "매우높음" | string;
 
@@ -119,6 +118,7 @@ function riskLevelStyle(level: RiskLevel) {
 
 export default function HazardAnalysis() {
   const [imageData, setImageData] = useState<string>("");
+  const [siteContext, setSiteContext] = useState<string>("");
   const [report, setReport] = useState<Report | null>(null);
   const [meta, setMeta] = useState<Meta>({});
   const [loading, setLoading] = useState(false);
@@ -141,6 +141,7 @@ export default function HazardAnalysis() {
 
   const reset = () => {
     setImageData("");
+    setSiteContext("");
     setReport(null);
     setMeta({});
   };
@@ -153,7 +154,11 @@ export default function HazardAnalysis() {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-risk", {
-        body: { taskName: "현장 사진 위험요인 분석", imageBase64: imageData },
+        body: {
+          taskName: "현장 사진 위험요인 분석",
+          imageBase64: imageData,
+          siteContext,
+        },
       });
       if (error) throw error;
       const r: Report = {
@@ -184,80 +189,14 @@ export default function HazardAnalysis() {
     }
   };
 
-  const copyText = async () => {
-    if (!report) return;
-    const lines: string[] = [];
-    lines.push("[요약]", report.summary, "");
-    lines.push("[사진에서 확인된 사실]");
-    report.observedFacts.forEach((f) => lines.push(`- ${f}`));
-    lines.push("", "[즉시 조치]");
-    report.immediateActions.forEach((f) => lines.push(`- ${f}`));
-    lines.push("", "[위험요인 및 개선대책]");
-    report.hazards.forEach((h, i) => {
-      lines.push(
-        `\n${i + 1}. ${h.title} [${h.riskLevel}] (빈도 ${h.frequency} × 강도 ${h.severity})`,
-      );
-      lines.push(`- 사전 근거: ${h.evidence}`);
-      lines.push(`- 예상 결과: ${h.expectedOutcome}`);
-      lines.push(`- 확인 방법: ${h.verification}`);
-      CONTROL_STEPS.forEach(({ key, label }) => {
-        const items = h.controls[key];
-        if (items && items.length > 0) {
-          lines.push(`  ${label}`);
-          items.forEach((c) => lines.push(`    • ${c}`));
-        }
-      });
-    });
-    if (report.limitations.length) {
-      lines.push("", "[한계 및 추가 확인]");
-      report.limitations.forEach((f) => lines.push(`- ${f}`));
+  const handlePrint = () => {
+    if (!report) {
+      toast.error("먼저 위험요인 분석을 실행해주세요.");
+      return;
     }
-    await navigator.clipboard.writeText(lines.join("\n"));
-    toast.success("클립보드에 복사했습니다.");
+    window.print();
   };
 
-  const exportExcel = async () => {
-    if (!report) return;
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet("위험요인");
-    ws.columns = [
-      { header: "No", key: "no", width: 4 },
-      { header: "위험요인", key: "title", width: 30 },
-      { header: "위험도", key: "level", width: 10 },
-      { header: "빈도", key: "f", width: 6 },
-      { header: "강도", key: "s", width: 6 },
-      { header: "사전 근거", key: "evidence", width: 40 },
-      { header: "예상 결과", key: "outcome", width: 40 },
-      { header: "확인 방법", key: "verify", width: 40 },
-      { header: "제거", key: "c1", width: 30 },
-      { header: "대체", key: "c2", width: 30 },
-      { header: "공학적", key: "c3", width: 40 },
-      { header: "격리", key: "c4", width: 30 },
-      { header: "관리적", key: "c5", width: 40 },
-      { header: "PPE", key: "c6", width: 30 },
-    ];
-    report.hazards.forEach((h, i) => {
-      ws.addRow({
-        no: i + 1,
-        title: h.title,
-        level: h.riskLevel,
-        f: h.frequency,
-        s: h.severity,
-        evidence: h.evidence,
-        outcome: h.expectedOutcome,
-        verify: h.verification,
-        c1: h.controls.elimination.join("\n"),
-        c2: h.controls.substitution.join("\n"),
-        c3: h.controls.engineering.join("\n"),
-        c4: h.controls.isolation.join("\n"),
-        c5: h.controls.administrative.join("\n"),
-        c6: h.controls.ppe.join("\n"),
-      });
-    });
-    ws.getRow(1).font = { bold: true };
-    const buf = await wb.xlsx.writeBuffer();
-    saveAs(new Blob([buf]), `현장위험요인_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
@@ -330,6 +269,19 @@ export default function HazardAnalysis() {
                 />
               </div>
 
+              <div className="mt-4">
+                <Label htmlFor="site-context" className="text-sm font-semibold text-slate-800">
+                  현장 설명
+                </Label>
+                <Textarea
+                  id="site-context"
+                  value={siteContext}
+                  onChange={(e) => setSiteContext(e.target.value)}
+                  placeholder="예시: 크레인 인양 작업 중, 사용하는 화학물질, 혼재 작업 가능성, 주변 고압선 위치함 등 사진만으로 파악하기 어려운 작업 정보나 위험 요소를 적어주시면 더 정확하게 분석합니다."
+                  className="mt-2 min-h-[140px] border-blue-200 focus-visible:ring-blue-400 text-sm leading-relaxed"
+                />
+              </div>
+
               <div className="flex gap-2 mt-4">
                 <Button
                   onClick={analyze}
@@ -355,7 +307,7 @@ export default function HazardAnalysis() {
 
             {/* Results */}
             <section>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 print:hidden">
                 <h2 className="flex items-center gap-2 text-base font-bold text-slate-800">
                   분석 결과
                 </h2>
@@ -363,23 +315,15 @@ export default function HazardAnalysis() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={copyText}
+                    onClick={handlePrint}
                     disabled={!report}
                     className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
                   >
-                    <Copy className="w-3.5 h-3.5" /> 복사
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={exportExcel}
-                    disabled={!report}
-                    className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+                    <Printer className="w-3.5 h-3.5" /> 인쇄
                   </Button>
                 </div>
               </div>
+
 
               {!report ? (
                 <div className="border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center h-[360px] text-slate-400">
@@ -389,14 +333,41 @@ export default function HazardAnalysis() {
               ) : (
                 <div className="space-y-5">
                   {/* 요약 */}
-                  {report.summary && (
-                    <div className="rounded-xl bg-blue-50 border border-blue-100 p-4">
-                      <div className="text-xs font-bold text-blue-800 mb-2">요약</div>
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {report.summary}
-                      </p>
+              <div id="hazard-print-report">
+                {/* Print-only header: 사진 + 현장 설명 */}
+                <div className="hidden print:block mb-4">
+                  <div className="rounded-xl border border-slate-300 overflow-hidden">
+                    <div className="grid grid-cols-2">
+                      <div className="p-3 flex items-center justify-center bg-white border-r border-slate-300">
+                        {imageData ? (
+                          <img
+                            src={imageData}
+                            alt="현장 사진"
+                            className="max-h-[240px] w-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-xs text-slate-400">사진 없음</div>
+                        )}
+                      </div>
+                      <div className="p-4 bg-white">
+                        <div className="text-[11px] font-bold text-blue-700 mb-2">현장 설명</div>
+                        <div className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
+                          {siteContext?.trim() || "(입력 없음)"}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                </div>
+
+                {report.summary && (
+                  <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 print:break-inside-avoid">
+                    <div className="text-xs font-bold text-blue-800 mb-2">요약</div>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                      {report.summary}
+                    </p>
+                  </div>
+                )}
+
 
                   {/* 확인된 사실 */}
                   {report.observedFacts.length > 0 && (
@@ -544,6 +515,7 @@ export default function HazardAnalysis() {
                     {meta.generatedAt ? new Date(meta.generatedAt).toLocaleString() : "-"}
                     {meta.imageNote ? ` · 사진 조건: ${meta.imageNote}` : ""}
                   </div>
+                </div>
                 </div>
               )}
             </section>
