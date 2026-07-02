@@ -5,8 +5,7 @@ import {
   ImagePlus,
   Sparkles,
   RotateCcw,
-  Copy,
-  FileSpreadsheet,
+  Printer,
   ScanSearch,
   X,
   Loader2,
@@ -17,10 +16,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ExcelJS from "exceljs";
-import { saveAs } from "file-saver";
 
 type RiskLevel = "낮음" | "보통" | "높음" | "매우높음" | string;
 
