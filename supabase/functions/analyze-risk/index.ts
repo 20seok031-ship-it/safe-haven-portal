@@ -23,9 +23,22 @@ serve(async (req) => {
 [분석 원칙]
 1. 구체성: "넘어짐 주의" 같은 모호한 표현 금지. [위치] + [원인] + [결과] 구조로 구체적으로 작성.
 2. 개선대책: 위험성평가 감소대책 6단계(제거 > 대체 > 공학적 > 격리 > 관리적 > PPE) 순서로 우선순위 있게 제안. 각 단계에 해당 사항이 없으면 "해당 없음 또는 현장 확인 필요"로 명시.
-3. 위험도: 빈도(1~5) × 강도(1~4). riskLevel은 다음 기준으로 라벨링:
+3. 위험도: 빈도(1~4) × 강도(1~4). riskLevel은 다음 기준으로 라벨링:
    - 낮음: 1~3, 보통: 4~6, 높음: 7~12, 매우높음: 13 이상
 4. 최소 3개 이상의 개별 위험(hazards)을 도출.
+
+[사내 표준 매핑 규칙 - 반드시 준수]
+A. hazard.category(평가구분): 반드시 아래 4M 중 하나의 문자열만 사용.
+   - "Machine(기계적)", "Media(물질·환경적)", "Man(인적)", "Management(관리적)"
+B. hazard.riskCause(유해위험원인): 반드시 아래 17개 표준 재해형태 단어 중 사진/상황에 가장 부합하는 하나(또는 명확한 조합 예: "낙하/비래")만 사용. 임의 텍스트 금지.
+   - 추락, 낙하, 협착, 충돌, 전도, 비래, 붕괴, 감전, 화재/폭발, 파열, 유해물질접촉, 무리한동작, 차량사고, 이상온도접촉, 토양오염, 대기오염, 수질오염
+C. hazard.hazardNarrative(위험요인 및 재해형태 서술): 아래 4M 세부 원인의 '의미'를 현장 상황과 결합해 "어떤 구체적 원인 → 어떤 위험/재해" 형태의 실무형 문장으로 상세 서술.
+   ★절대 금지: 문장 안에 [4.5], [2.1] 같은 코드 번호나 "근로자 관리감독 지도의 결여"처럼 표준 항목 명칭을 그대로 옮겨 쓰는 것. 대신 그 맥락(관리감독 부재, 정리정돈 불량, 안전장치 기능 상실, 개인보호구 미착용 등)을 문장에 자연스럽게 녹여 전문 보고서 톤으로 작성.
+   - Machine(기계적): 기계설비 구조 결함 / 방호장치 불량 / 본질안전 설계 부족 / 비상 안전연동·경고장치 결함 / 전기·공압 등 유틸리티 결함 / 운반수단 결함
+   - Media(물질·환경적): 작업공간 정리정돈·통로 불량 / 가스·분진·흄 등 유해물질 발생 / 산소결핍·소음·진동·고저온 등 위험환경 / 화학물질 취급 중독 위험
+   - Man(인적): 불안전한 행동 / 부적절한 작업방법 / 안전보건 정보 미숙지 / 인적 오류 / 불안전한 작업자세 및 PPE 미착용
+   - Management(관리적): 관리조직 결함 / 규정·매뉴얼 미비 / 안전관리계획 미흡 / 안전 교육훈련 부족 / 현장 관리감독 지도 결여 / 안전수칙·표지판 미게시 / 건강관리 프로그램 미흡
+D. 여러 hazard가 같은 category를 갖는 경우, 동일 category의 항목들을 연속되게 배열에 배치.
 
 [필수 JSON 출력 형식]
 다른 텍스트/마크다운/코드블록 없이 아래 JSON 객체 하나만 출력.
@@ -37,6 +50,9 @@ serve(async (req) => {
   "hazards": [
     {
       "title": "덕트 연결 불량 및 이탈",
+      "category": "Machine(기계적)",
+      "riskCause": "낙하",
+      "hazardNarrative": "환기 덕트 연결부가 임시 테이핑만으로 고정되어 방호·고정 상태가 불량하며, 지지대 부재로 처짐이 진행되고 있어 작업 중 덕트가 이탈·낙하할 경우 하부 작업자에게 타격을 줄 수 있음. 또한 연결부 기밀 파손으로 내부 오염 공기가 누출되어 호흡기 유해영향을 초래할 우려가 있음.",
       "riskLevel": "보통",
       "frequency": 2,
       "severity": 3,
@@ -129,11 +145,21 @@ ${siteContext?.trim() ? siteContext : "(입력 없음)"}
       imageNote: "",
     };
 
-    // Back-compat: also expose flat results array for any legacy consumers
+    // Map hazards to the 위험성평가 table rows (사내 표준 4M / 17재해형태)
+    const ALLOWED_CATEGORIES = ["Machine(기계적)", "Media(물질·환경적)", "Man(인적)", "Management(관리적)"];
+    const ALLOWED_CAUSES = ["추락","낙하","협착","충돌","전도","비래","붕괴","감전","화재/폭발","파열","유해물질접촉","무리한동작","차량사고","이상온도접촉","토양오염","대기오염","수질오염"];
+    const normalizeCategory = (c: string) => ALLOWED_CATEGORIES.find(a => a === c) || ALLOWED_CATEGORIES.find(a => c && a.startsWith(c)) || "Management(관리적)";
+    const normalizeCause = (c: string) => {
+      if (!c) return "무리한동작";
+      const parts = c.split(/[\/,·]/).map(s => s.trim()).filter(Boolean);
+      const mapped = parts.map(p => ALLOWED_CAUSES.find(a => a === p) || ALLOWED_CAUSES.find(a => a.includes(p) || p.includes(a))).filter(Boolean);
+      return mapped.length ? Array.from(new Set(mapped)).join("/") : "무리한동작";
+    };
+
     const results = (report.hazards ?? []).map((h: any) => ({
-      category: "",
-      riskType: h.title ?? "",
-      hazardDescription: h.expectedOutcome ?? "",
+      category: normalizeCategory(h.category ?? ""),
+      riskType: normalizeCause(h.riskCause ?? ""),
+      hazardDescription: h.hazardNarrative ?? h.expectedOutcome ?? "",
       currentMeasure: h.evidence ?? "",
       currentFrequency: h.frequency ?? 0,
       currentSeverity: h.severity ?? 0,
@@ -141,7 +167,7 @@ ${siteContext?.trim() ? siteContext : "(입력 없음)"}
         ...(h?.controls?.engineering ?? []),
         ...(h?.controls?.administrative ?? []),
         ...(h?.controls?.ppe ?? []),
-      ].join(" / "),
+      ].filter((s: string) => s && !/해당 없음/.test(s)).join(" / "),
     }));
 
     return new Response(
