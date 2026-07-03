@@ -326,7 +326,7 @@ export default function HazardAnalysis() {
 
 
               {!report ? (
-                <div className="border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center h-[360px] text-slate-400">
+                <div className="flex-1 border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center min-h-[360px] text-slate-400">
                   <ScanSearch className="w-10 h-10 mb-3" />
                   <p className="text-sm">사진을 선택한 뒤 분석을 실행하면 결과가 표시됩니다.</p>
                 </div>
