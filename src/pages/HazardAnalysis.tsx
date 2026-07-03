@@ -210,7 +210,7 @@ export default function HazardAnalysis() {
             사진점검
           </span>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-            현장 사진 위험요인 분석
+            현장 위험요인 분석
           </h1>
           <p className="text-sm text-slate-500 mt-2">
             현장 사진을 업로드하면 AI가 요약·확인된 사실·즉시 조치·6단계 감소대책을 카드 형태로 정리합니다.
