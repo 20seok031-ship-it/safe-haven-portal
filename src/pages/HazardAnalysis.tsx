@@ -334,6 +334,17 @@ export default function HazardAnalysis() {
                 <div className="space-y-5">
                   {/* 요약 */}
               <div id="hazard-print-report">
+                {/* Print-only report title */}
+                <div className="hidden print:block mb-5">
+                  <div className="rounded-xl bg-slate-100 border border-slate-200 px-5 py-4 flex items-center justify-between">
+                    <div className="text-lg font-extrabold text-slate-900 tracking-tight">
+                      현장 위험요인 분석 결과 보고서
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      출력일시: {new Date().toLocaleDateString("ko-KR")}
+                    </div>
+                  </div>
+                </div>
                 {/* Print-only header: 사진 + 현장 설명 */}
                 <div className="hidden print:block mb-4">
                   <div className="rounded-xl border border-slate-300 overflow-hidden">
