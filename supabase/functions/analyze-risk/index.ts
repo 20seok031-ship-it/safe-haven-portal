@@ -145,11 +145,21 @@ ${siteContext?.trim() ? siteContext : "(입력 없음)"}
       imageNote: "",
     };
 
-    // Back-compat: also expose flat results array for any legacy consumers
+    // Map hazards to the 위험성평가 table rows (사내 표준 4M / 17재해형태)
+    const ALLOWED_CATEGORIES = ["Machine(기계적)", "Media(물질·환경적)", "Man(인적)", "Management(관리적)"];
+    const ALLOWED_CAUSES = ["추락","낙하","협착","충돌","전도","비래","붕괴","감전","화재/폭발","파열","유해물질접촉","무리한동작","차량사고","이상온도접촉","토양오염","대기오염","수질오염"];
+    const normalizeCategory = (c: string) => ALLOWED_CATEGORIES.find(a => a === c) || ALLOWED_CATEGORIES.find(a => c && a.startsWith(c)) || "Management(관리적)";
+    const normalizeCause = (c: string) => {
+      if (!c) return "무리한동작";
+      const parts = c.split(/[\/,·]/).map(s => s.trim()).filter(Boolean);
+      const mapped = parts.map(p => ALLOWED_CAUSES.find(a => a === p) || ALLOWED_CAUSES.find(a => a.includes(p) || p.includes(a))).filter(Boolean);
+      return mapped.length ? Array.from(new Set(mapped)).join("/") : "무리한동작";
+    };
+
     const results = (report.hazards ?? []).map((h: any) => ({
-      category: "",
-      riskType: h.title ?? "",
-      hazardDescription: h.expectedOutcome ?? "",
+      category: normalizeCategory(h.category ?? ""),
+      riskType: normalizeCause(h.riskCause ?? ""),
+      hazardDescription: h.hazardNarrative ?? h.expectedOutcome ?? "",
       currentMeasure: h.evidence ?? "",
       currentFrequency: h.frequency ?? 0,
       currentSeverity: h.severity ?? 0,
@@ -157,7 +167,7 @@ ${siteContext?.trim() ? siteContext : "(입력 없음)"}
         ...(h?.controls?.engineering ?? []),
         ...(h?.controls?.administrative ?? []),
         ...(h?.controls?.ppe ?? []),
-      ].join(" / "),
+      ].filter((s: string) => s && !/해당 없음/.test(s)).join(" / "),
     }));
 
     return new Response(
