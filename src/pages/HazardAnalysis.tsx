@@ -210,7 +210,7 @@ export default function HazardAnalysis() {
             사진점검
           </span>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-            현장 사진 위험요인 분석
+            현장 위험요인 분석
           </h1>
           <p className="text-sm text-slate-500 mt-2">
             현장 사진을 업로드하면 AI가 요약·확인된 사실·즉시 조치·6단계 감소대책을 카드 형태로 정리합니다.
@@ -219,9 +219,9 @@ export default function HazardAnalysis() {
 
         <div className="rounded-2xl bg-white border border-blue-100 shadow-sm overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-blue-400 via-blue-500 to-sky-400" />
-          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 p-6 md:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 p-6 md:p-8 items-stretch">
             {/* Input */}
-            <section>
+            <section className="flex flex-col h-full">
               <h2 className="flex items-center gap-2 text-base font-bold text-slate-800 mb-4">
                 <ImagePlus className="w-5 h-5 text-blue-600" /> 분석 입력
               </h2>
@@ -269,8 +269,8 @@ export default function HazardAnalysis() {
                 />
               </div>
 
-              <div className="mt-4">
-                <Label htmlFor="site-context" className="text-sm font-semibold text-slate-800">
+              <div className="mt-4 flex-1 flex flex-col">
+                <Label htmlFor="site-context" className="flex items-center gap-2 text-base font-bold text-slate-800">
                   현장 설명
                 </Label>
                 <Textarea
@@ -278,7 +278,7 @@ export default function HazardAnalysis() {
                   value={siteContext}
                   onChange={(e) => setSiteContext(e.target.value)}
                   placeholder="예시: 크레인 인양 작업 중, 사용하는 화학물질, 혼재 작업 가능성, 주변 고압선 위치함 등 사진만으로 파악하기 어려운 작업 정보나 위험 요소를 적어주시면 더 정확하게 분석합니다."
-                  className="mt-2 min-h-[140px] border-blue-200 focus-visible:ring-blue-400 text-sm leading-relaxed"
+                  className="mt-3 flex-1 min-h-[140px] border-blue-200 focus-visible:ring-blue-400 text-sm leading-relaxed resize-none"
                 />
               </div>
 
@@ -306,10 +306,10 @@ export default function HazardAnalysis() {
             </section>
 
             {/* Results */}
-            <section>
+            <section className="flex flex-col h-full">
               <div className="flex items-center justify-between mb-4 print:hidden">
                 <h2 className="flex items-center gap-2 text-base font-bold text-slate-800">
-                  분석 결과
+                  <ScanSearch className="w-5 h-5 text-blue-600" /> 분석 결과
                 </h2>
                 <div className="flex gap-2">
                   <Button
@@ -326,7 +326,7 @@ export default function HazardAnalysis() {
 
 
               {!report ? (
-                <div className="border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center h-[360px] text-slate-400">
+                <div className="flex-1 border border-blue-100 rounded-xl bg-blue-50/30 flex flex-col items-center justify-center text-center min-h-[360px] text-slate-400">
                   <ScanSearch className="w-10 h-10 mb-3" />
                   <p className="text-sm">사진을 선택한 뒤 분석을 실행하면 결과가 표시됩니다.</p>
                 </div>
@@ -334,6 +334,17 @@ export default function HazardAnalysis() {
                 <div className="space-y-5">
                   {/* 요약 */}
               <div id="hazard-print-report">
+                {/* Print-only report title */}
+                <div className="hidden print:block mb-5">
+                  <div className="rounded-xl bg-slate-100 border border-slate-200 px-5 py-4 flex items-center justify-between">
+                    <div className="text-lg font-extrabold text-slate-900 tracking-tight">
+                      현장 위험요인 분석 결과 보고서
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      출력일시: {new Date().toLocaleDateString("ko-KR")}
+                    </div>
+                  </div>
+                </div>
                 {/* Print-only header: 사진 + 현장 설명 */}
                 <div className="hidden print:block mb-4">
                   <div className="rounded-xl border border-slate-300 overflow-hidden">
