@@ -306,10 +306,10 @@ export default function HazardAnalysis() {
             </section>
 
             {/* Results */}
-            <section>
+            <section className="flex flex-col h-full">
               <div className="flex items-center justify-between mb-4 print:hidden">
                 <h2 className="flex items-center gap-2 text-base font-bold text-slate-800">
-                  분석 결과
+                  <ScanSearch className="w-5 h-5 text-blue-600" /> 분석 결과
                 </h2>
                 <div className="flex gap-2">
                   <Button
