@@ -269,8 +269,8 @@ export default function HazardAnalysis() {
                 />
               </div>
 
-              <div className="mt-4">
-                <Label htmlFor="site-context" className="text-sm font-semibold text-slate-800">
+              <div className="mt-4 flex-1 flex flex-col">
+                <Label htmlFor="site-context" className="flex items-center gap-2 text-base font-bold text-slate-800">
                   현장 설명
                 </Label>
                 <Textarea
@@ -278,7 +278,7 @@ export default function HazardAnalysis() {
                   value={siteContext}
                   onChange={(e) => setSiteContext(e.target.value)}
                   placeholder="예시: 크레인 인양 작업 중, 사용하는 화학물질, 혼재 작업 가능성, 주변 고압선 위치함 등 사진만으로 파악하기 어려운 작업 정보나 위험 요소를 적어주시면 더 정확하게 분석합니다."
-                  className="mt-2 min-h-[140px] border-blue-200 focus-visible:ring-blue-400 text-sm leading-relaxed"
+                  className="mt-3 flex-1 min-h-[140px] border-blue-200 focus-visible:ring-blue-400 text-sm leading-relaxed resize-none"
                 />
               </div>
 
