@@ -219,9 +219,9 @@ export default function HazardAnalysis() {
 
         <div className="rounded-2xl bg-white border border-blue-100 shadow-sm overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-blue-400 via-blue-500 to-sky-400" />
-          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 p-6 md:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 p-6 md:p-8 items-stretch">
             {/* Input */}
-            <section>
+            <section className="flex flex-col h-full">
               <h2 className="flex items-center gap-2 text-base font-bold text-slate-800 mb-4">
                 <ImagePlus className="w-5 h-5 text-blue-600" /> 분석 입력
               </h2>
