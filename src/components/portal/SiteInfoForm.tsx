@@ -95,6 +95,12 @@ export default function SiteInfoForm() {
     setResults([]);
 
     try {
+      const { data: refs } = await supabase
+        .from("reference_materials")
+        .select("title,description,content")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
       const { data, error } = await supabase.functions.invoke("analyze-risk", {
         body: {
           companyName: assessRole,
@@ -103,6 +109,7 @@ export default function SiteInfoForm() {
           processName: processCategory,
           taskName: taskDescription,
           imageBase64: validImages[0],
+          referenceMaterials: refs ?? [],
         },
       });
 
@@ -372,7 +379,7 @@ export default function SiteInfoForm() {
 
   return (
     <div className="space-y-6" onPaste={handlePaste}>
-      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
+      <div className="relative bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
@@ -380,6 +387,11 @@ export default function SiteInfoForm() {
               <FileText className="w-5 h-5 text-slate-600" />
             </div>
             <h2 className="text-xl font-bold text-foreground">수시 위험성평가</h2>
+          </div>
+          <div className="absolute top-4 right-4 print:hidden">
+            <a href="/login" className="text-xs text-slate-500 hover:text-blue-700 border border-slate-200 rounded-full px-3 py-1 bg-white hover:bg-blue-50 transition-colors">
+              데이터 관리
+            </a>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6" onClick={handleAnalyze} disabled={isAnalyzing}>
