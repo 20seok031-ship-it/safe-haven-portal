@@ -116,6 +116,7 @@
     zoom: 1 !important;
     font-size: 10pt !important;
     overflow: visible !important;
+    page: risk-report;
   }
   #risk-report table {
     page-break-inside: auto !important;
@@ -155,8 +156,9 @@
   #risk-report input[type="number"]::-webkit-outer-spin-button { display: none !important; }
   #risk-report input { border: none !important; background: transparent !important; box-shadow: none !important; }
   #risk-report img { page-break-inside: avoid !important; max-width: 100% !important; height: auto !important; }
-  @page { size: A4 landscape; margin: 10mm; }
 }
+
+@page risk-report { size: A4 landscape; margin: 10mm; }
 
 @media print {
   body:has(#hazard-print-report) > * { visibility: hidden; }
@@ -172,6 +174,7 @@
     background: white !important;
     font-size: 10pt !important;
     color: #111 !important;
+    page: hazard-report;
   }
   #hazard-print-report article,
   #hazard-print-report .print\:break-inside-avoid {
@@ -187,6 +190,8 @@
     break-inside: avoid !important;
   }
   body:has(#hazard-print-report) { background: white !important; }
-  @page { size: A4 portrait; margin: 12mm; }
 }
+
+@page hazard-report { size: A4 portrait; margin: 12mm; }
+
 
