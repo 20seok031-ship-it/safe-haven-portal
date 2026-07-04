@@ -139,6 +139,26 @@ export default function HazardAnalysis() {
     handleFile(e.dataTransfer.files?.[0]);
   }, []);
 
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const it of Array.from(items)) {
+        if (it.type.startsWith("image/")) {
+          const file = it.getAsFile();
+          if (file) {
+            handleFile(file);
+            e.preventDefault();
+            toast.success("붙여넣은 사진을 불러왔습니다.");
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
   const reset = () => {
     setImageData("");
     setSiteContext("");
