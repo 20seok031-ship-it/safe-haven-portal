@@ -372,7 +372,7 @@ export default function SiteInfoForm() {
 
   return (
     <div className="space-y-6" onPaste={handlePaste}>
-      <div className="bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
+      <div className="relative bg-white rounded-xl border border-border shadow-sm p-6 md:p-8 max-w-[1200px] mx-auto print:hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
