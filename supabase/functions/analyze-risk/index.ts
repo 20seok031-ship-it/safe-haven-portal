@@ -61,6 +61,12 @@ serve(async (req) => {
     if (imageBase64) {
       userContent.push({ type: "image_url", image_url: { url: imageBase64 } });
     }
+    const refsBlock = Array.isArray(referenceMaterials) && referenceMaterials.length > 0
+      ? referenceMaterials.map((r: any, i: number) =>
+          `[자료 ${i + 1}] ${r.title ?? ""}\n${r.description ?? ""}\n${r.content ?? ""}`
+        ).join("\n\n---\n\n")
+      : "(등록된 참고자료 없음)";
+
     userContent.push({
       type: "text",
       text: `현장 정보:
@@ -73,7 +79,10 @@ serve(async (req) => {
 [사용자 입력 현장 설명]
 ${siteContext?.trim() ? siteContext : "(입력 없음)"}
 
-지침: 제공된 이미지 분석 결과와 위 '사용자 입력 현장 설명'을 결합하여 위험성평가를 수행하라. 특히 사용자가 텍스트로 지적하거나 설명한 현장 맥락(작업 종류, 주변 환경, 장비 정보, 화학물질, 혼재작업, 인접 위험원 등)이 있다면 이를 최우선으로 반영하여 [요약], [확인된 사실], [즉시 조치], [6단계 감소대책] 구조에 맞춰 정교한 JSON 결과를 도출하라.`,
+[관리자 등록 참고자료 - 사내 규정/법규/사고사례 등, 최우선 참고]
+${refsBlock}
+
+지침: 제공된 이미지와 위 '사용자 입력 현장 설명', 그리고 '관리자 등록 참고자료'를 결합하여 위험성평가를 수행하라. 참고자료에 관련 규정/사례가 있으면 이를 근거로 우선 인용하고, 사용자 입력 현장 맥락(작업 종류, 주변 환경, 장비 정보, 화학물질, 혼재작업, 인접 위험원 등)을 반영하여 [요약], [확인된 사실], [즉시 조치], [6단계 감소대책] 구조에 맞는 정교한 JSON 결과를 도출하라.`,
     });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
