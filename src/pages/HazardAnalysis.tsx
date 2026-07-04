@@ -249,7 +249,7 @@ export default function HazardAnalysis() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
                 onClick={() => fileRef.current?.click()}
-                className="cursor-pointer border-2 border-dashed border-blue-200 rounded-xl min-h-[240px] flex items-center justify-center bg-blue-50/40 hover:bg-blue-50 transition relative overflow-hidden"
+                className="cursor-pointer border-2 border-dashed border-blue-200 rounded-xl flex-1 min-h-[240px] flex items-center justify-center bg-blue-50/40 hover:bg-blue-50 transition relative overflow-hidden"
               >
                 {imageData ? (
                   <>
