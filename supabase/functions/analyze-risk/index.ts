@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { companyName, siteName, companyType, industry, region, processName, taskName, imageBase64, siteContext } =
+    const { companyName, siteName, companyType, industry, region, processName, taskName, imageBase64, siteContext, referenceMaterials } =
       await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
