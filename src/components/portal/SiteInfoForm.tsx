@@ -95,6 +95,12 @@ export default function SiteInfoForm() {
     setResults([]);
 
     try {
+      const { data: refs } = await supabase
+        .from("reference_materials")
+        .select("title,description,content")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
       const { data, error } = await supabase.functions.invoke("analyze-risk", {
         body: {
           companyName: assessRole,
@@ -103,6 +109,7 @@ export default function SiteInfoForm() {
           processName: processCategory,
           taskName: taskDescription,
           imageBase64: validImages[0],
+          referenceMaterials: refs ?? [],
         },
       });
 
