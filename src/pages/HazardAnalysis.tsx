@@ -549,6 +549,8 @@ export default function HazardAnalysis() {
                 </div>
                 </div>
               )}
+              {/* Bottom spacer to align result box bottom with site-context textarea bottom (matches left button row height) */}
+              <div className="mt-4 h-10 print:hidden" aria-hidden />
             </section>
           </div>
         </div>
