@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -139,6 +139,26 @@ export default function HazardAnalysis() {
     handleFile(e.dataTransfer.files?.[0]);
   }, []);
 
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const it of Array.from(items)) {
+        if (it.type.startsWith("image/")) {
+          const file = it.getAsFile();
+          if (file) {
+            handleFile(file);
+            e.preventDefault();
+            toast.success("붙여넣은 사진을 불러왔습니다.");
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, []);
+
   const reset = () => {
     setImageData("");
     setSiteContext("");
@@ -229,7 +249,7 @@ export default function HazardAnalysis() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={onDrop}
                 onClick={() => fileRef.current?.click()}
-                className="cursor-pointer border-2 border-dashed border-blue-200 rounded-xl min-h-[240px] flex items-center justify-center bg-blue-50/40 hover:bg-blue-50 transition relative overflow-hidden"
+                className="cursor-pointer border-2 border-dashed border-blue-200 rounded-xl flex-1 min-h-[240px] flex items-center justify-center bg-blue-50/40 hover:bg-blue-50 transition relative overflow-hidden"
               >
                 {imageData ? (
                   <>
@@ -529,6 +549,8 @@ export default function HazardAnalysis() {
                 </div>
                 </div>
               )}
+              {/* Bottom spacer to align result box bottom with site-context textarea bottom (matches left button row height) */}
+              <div className="mt-4 h-10 print:hidden" aria-hidden />
             </section>
           </div>
         </div>
