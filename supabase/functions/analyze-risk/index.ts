@@ -158,20 +158,49 @@ ${refsBlock}
       imageNote: "",
     };
 
-    // Back-compat: also expose flat results array for any legacy consumers
-    const results = (report.hazards ?? []).map((h: any) => ({
-      category: "",
-      riskType: h.title ?? "",
-      hazardDescription: h.expectedOutcome ?? "",
-      currentMeasure: h.evidence ?? "",
-      currentFrequency: h.frequency ?? 0,
-      currentSeverity: h.severity ?? 0,
-      improvementMeasure: [
-        ...(h?.controls?.engineering ?? []),
-        ...(h?.controls?.administrative ?? []),
-        ...(h?.controls?.ppe ?? []),
-      ].join(" / "),
-    }));
+    const ALLOWED_CATEGORIES = ["Machine(기계적)", "Media(물질·환경적)", "Man(인적)", "Management(관리적)"];
+    const ALLOWED_RISK_TYPES = ["추락","낙하","협착","충돌","전도","비래","붕괴","감전","화재/폭발","파열","유해물질접촉","무리한동작","차량사고","이상온도접촉","토양오염","대기오염","수질오염"];
+
+    const normalizeCategory = (c: string) => {
+      if (!c) return "Management(관리적)";
+      const found = ALLOWED_CATEGORIES.find((a) => a === c || a.startsWith(c) || c.includes(a.split("(")[0]));
+      return found ?? "Management(관리적)";
+    };
+    const normalizeRiskType = (t: string) => {
+      if (!t) return "무리한동작";
+      const found = ALLOWED_RISK_TYPES.find((a) => t.includes(a));
+      return found ?? "무리한동작";
+    };
+    const clamp = (n: any, lo = 1, hi = 4) => {
+      const v = Number.isFinite(+n) ? Math.round(+n) : lo;
+      return Math.min(hi, Math.max(lo, v));
+    };
+
+    const results = (report.hazards ?? []).map((h: any) => {
+      const cf = clamp(h.frequency);
+      const cs = clamp(h.severity);
+      const impF = clamp(h.improvedFrequency ?? Math.max(1, cf - 1), 1, cf);
+      const impS = clamp(h.improvedSeverity ?? Math.max(1, cs - 1), 1, cs);
+      return {
+        category: normalizeCategory(h.category ?? ""),
+        riskType: normalizeRiskType(h.riskType ?? h.title ?? ""),
+        hazardDescription: h.hazardDescription ?? h.expectedOutcome ?? "",
+        currentMeasure: h.evidence ?? "",
+        currentFrequency: cf,
+        currentSeverity: cs,
+        improvementMeasure: [
+          ...(h?.controls?.elimination ?? []),
+          ...(h?.controls?.substitution ?? []),
+          ...(h?.controls?.engineering ?? []),
+          ...(h?.controls?.isolation ?? []),
+          ...(h?.controls?.administrative ?? []),
+          ...(h?.controls?.ppe ?? []),
+        ].filter((s) => s && !/해당 없음/.test(s)).join(" / "),
+        improvedFrequency: impF,
+        improvedSeverity: impS,
+      };
+    });
+
 
     return new Response(
       JSON.stringify({
