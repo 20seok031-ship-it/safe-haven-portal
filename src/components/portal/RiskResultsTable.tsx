@@ -36,9 +36,9 @@ function AutoTextarea({
           onChange(e.target.value);
           resize();
         }}
-        style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
+        style={{ whiteSpace: "pre-wrap", wordBreak: "break-all", overflowWrap: "anywhere", overflow: "hidden", height: "auto" }}
       />
-      <div className={`${className ?? ""} hidden print:block`} style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "visible", height: "auto" }}>
+      <div className={`${className ?? ""} hidden print:block`} style={{ whiteSpace: "pre-wrap", wordBreak: "break-all", overflowWrap: "anywhere", overflow: "visible", height: "auto" }}>
         {value}
       </div>
     </>
