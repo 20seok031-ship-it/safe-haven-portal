@@ -36,9 +36,9 @@ function AutoTextarea({
           onChange(e.target.value);
           resize();
         }}
-        style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "hidden" }}
+        style={{ whiteSpace: "pre-wrap", wordBreak: "break-all", overflowWrap: "anywhere", overflow: "hidden", height: "auto" }}
       />
-      <div className={`${className ?? ""} hidden print:block`} style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflow: "visible", height: "auto" }}>
+      <div className={`${className ?? ""} hidden print:block`} style={{ whiteSpace: "pre-wrap", wordBreak: "break-all", overflowWrap: "anywhere", overflow: "visible", height: "auto" }}>
         {value}
       </div>
     </>
@@ -200,20 +200,19 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                 {/* Merged category cell */}
                 {isFirst && (
                   <td className={`${tdC} align-middle font-semibold`} rowSpan={span}>
-                    <input className={inp} value={r.category} onChange={(e) => {
-                      // Update all rows in this span
-                      for (let k = i; k < i + span; k++) onUpdateResult(k, "category", e.target.value);
+                    <AutoTextarea className={`${txtInp} text-center`} value={r.category} onChange={(v) => {
+                      for (let k = i; k < i + span; k++) onUpdateResult(k, "category", v);
                     }} />
                   </td>
                 )}
                 {/* Skip cell for spanned rows */}
                 {!isFirst && !isSpanned && (
                   <td className={tdC}>
-                    <input className={inp} value={r.category} onChange={(e) => onUpdateResult(i, "category", e.target.value)} />
+                    <AutoTextarea className={`${txtInp} text-center`} value={r.category} onChange={(v) => onUpdateResult(i, "category", v)} />
                   </td>
                 )}
                 <td className={tdC}>
-                  <input className={inp} value={r.riskType} onChange={(e) => onUpdateResult(i, "riskType", e.target.value)} />
+                  <AutoTextarea className={`${txtInp} text-center`} value={r.riskType} onChange={(v) => onUpdateResult(i, "riskType", v)} />
                 </td>
                 <td className={`${td} align-top`}>
                   <AutoTextarea className={txtInp} value={r.hazardDescription} onChange={(v) => onUpdateResult(i, "hazardDescription", v)} />
