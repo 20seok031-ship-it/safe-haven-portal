@@ -388,11 +388,11 @@ export default function SiteInfoForm() {
             </div>
             <h2 className="text-xl font-bold text-foreground">수시 위험성평가</h2>
           </div>
-          <div className="absolute top-4 right-4 print:hidden">
-            <a href="/login" className="text-xs text-slate-500 hover:text-blue-700 border border-slate-200 rounded-full px-3 py-1 bg-white hover:bg-blue-50 transition-colors">
-              데이터 관리
-            </a>
-          </div>
+      <div className="absolute -top-3 right-4 print:hidden z-10">
+        <a href="/login" className="text-xs text-slate-500 hover:text-blue-700 border border-slate-200 rounded-full px-3 py-1 bg-white hover:bg-blue-50 transition-colors shadow-sm">
+          데이터 관리
+        </a>
+      </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Button className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-6" onClick={handleAnalyze} disabled={isAnalyzing}>
               {isAnalyzing ? (<><Loader2 className="w-4 h-4 animate-spin" />분석 중...</>) : "위험 식별"}
