@@ -179,8 +179,9 @@ ${refsBlock}
     const results = (report.hazards ?? []).map((h: any) => {
       const cf = clamp(h.frequency);
       const cs = clamp(h.severity);
+      // 사내 규칙: 개선 후 강도는 현재 강도와 동일하게 유지(강도 감소 불가), 빈도만 감소
       const impF = clamp(h.improvedFrequency ?? Math.max(1, cf - 1), 1, cf);
-      const impS = clamp(h.improvedSeverity ?? Math.max(1, cs - 1), 1, cs);
+      const impS = cs;
       return {
         category: normalizeCategory(h.category ?? ""),
         riskType: normalizeRiskType(h.riskType ?? h.title ?? ""),
