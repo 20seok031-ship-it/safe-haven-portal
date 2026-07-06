@@ -247,9 +247,40 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                 <td className={tdC}>
                   <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${getGradeColor(impRisk)}`}>{impRisk}</span>
                 </td>
+                <td className={`${tdC} print:hidden`}>
+                  <div className="flex flex-col gap-1 items-center">
+                    <button
+                      type="button"
+                      title="이 행 아래에 새 행 추가"
+                      onClick={() => onAddRow?.(i)}
+                      className="p-1 rounded hover:bg-blue-50 text-blue-600"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      title="이 행 삭제"
+                      onClick={() => onDeleteRow?.(i)}
+                      className="p-1 rounded hover:bg-red-50 text-red-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             );
           })}
+          <tr className="print:hidden">
+            <td colSpan={11} className="border border-slate-400 p-2 text-center bg-slate-50">
+              <button
+                type="button"
+                onClick={() => onAddRow?.(results.length - 1)}
+                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-900 font-semibold"
+              >
+                <Plus className="w-3.5 h-3.5" /> 빈 행 추가
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
 
