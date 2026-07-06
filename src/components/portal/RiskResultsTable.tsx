@@ -72,6 +72,8 @@ interface RiskResultsTableProps {
   formInfo: FormInfo;
   uploadedImages: string[];
   onUpdateResult: (index: number, field: keyof RiskResult, value: string | number) => void;
+  onAddRow?: (afterIndex: number) => void;
+  onDeleteRow?: (index: number) => void;
 }
 
 function getGradeColor(score: number) {
