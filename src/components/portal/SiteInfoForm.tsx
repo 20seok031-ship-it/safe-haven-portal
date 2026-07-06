@@ -492,6 +492,8 @@ export default function SiteInfoForm() {
           formInfo={{ assessRole, processCategory, assessDate, assessor, assessTarget, assessType }}
           uploadedImages={uploadedImages}
           onUpdateResult={handleUpdateResult}
+          onAddRow={handleAddRow}
+          onDeleteRow={handleDeleteRow}
         />
       )}
 
