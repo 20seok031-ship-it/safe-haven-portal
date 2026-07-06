@@ -83,13 +83,15 @@ function getGradeColor(score: number) {
 }
 
 function calcAvg(results: RiskResult[], type: "current" | "improved") {
-  if (results.length === 0) return "0.00";
-  const sum = results.reduce((acc, r) => {
-    const f = type === "current" ? r.currentFrequency : r.improvedFrequency;
-    const s = type === "current" ? r.currentSeverity : r.improvedSeverity;
-    return acc + f * s;
-  }, 0);
-  return (sum / results.length).toFixed(2);
+  const scores = results
+    .map((r) => {
+      const f = type === "current" ? r.currentFrequency : r.improvedFrequency;
+      const s = type === "current" ? r.currentSeverity : r.improvedSeverity;
+      return Number(f) * Number(s);
+    })
+    .filter((n) => Number.isFinite(n));
+  if (scores.length === 0) return "0.00";
+  return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
 }
 
 /** Group consecutive rows by category for rowspan merging */
