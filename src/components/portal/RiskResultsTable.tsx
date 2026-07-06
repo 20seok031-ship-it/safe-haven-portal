@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Plus, Trash2 } from "lucide-react";
 
 /** Auto-resizing textarea that grows with content from initial render — no click required. */
 function AutoTextarea({
@@ -71,6 +72,8 @@ interface RiskResultsTableProps {
   formInfo: FormInfo;
   uploadedImages: string[];
   onUpdateResult: (index: number, field: keyof RiskResult, value: string | number) => void;
+  onAddRow?: (afterIndex: number) => void;
+  onDeleteRow?: (index: number) => void;
 }
 
 function getGradeColor(score: number) {
@@ -80,13 +83,15 @@ function getGradeColor(score: number) {
 }
 
 function calcAvg(results: RiskResult[], type: "current" | "improved") {
-  if (results.length === 0) return "0.00";
-  const sum = results.reduce((acc, r) => {
-    const f = type === "current" ? r.currentFrequency : r.improvedFrequency;
-    const s = type === "current" ? r.currentSeverity : r.improvedSeverity;
-    return acc + f * s;
-  }, 0);
-  return (sum / results.length).toFixed(2);
+  const scores = results
+    .map((r) => {
+      const f = type === "current" ? r.currentFrequency : r.improvedFrequency;
+      const s = type === "current" ? r.currentSeverity : r.improvedSeverity;
+      return Number(f) * Number(s);
+    })
+    .filter((n) => Number.isFinite(n));
+  if (scores.length === 0) return "0.00";
+  return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
 }
 
 /** Group consecutive rows by category for rowspan merging */
@@ -108,7 +113,7 @@ const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 4. 유사 안전사고 발생사례
 5. 안전작업수칙`;
 
-export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult }: RiskResultsTableProps) {
+export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult, onAddRow, onDeleteRow }: RiskResultsTableProps) {
   const [educationContent, setEducationContent] = useState(DEFAULT_EDUCATION);
 
   const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800 align-middle";
@@ -177,6 +182,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
             <th colSpan={3} className={th}>현재 위험도</th>
             <th rowSpan={2} className={`${th} min-w-[140px]`}>개선 대책</th>
             <th colSpan={3} className={th}>개선후위험도</th>
+            <th rowSpan={2} className={`${th} w-[60px] print:hidden`}>편집</th>
           </tr>
           <tr>
             <th className={`${th} w-[40px]`}>빈도</th>
@@ -241,9 +247,40 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
                 <td className={tdC}>
                   <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${getGradeColor(impRisk)}`}>{impRisk}</span>
                 </td>
+                <td className={`${tdC} print:hidden`}>
+                  <div className="flex flex-col gap-1 items-center">
+                    <button
+                      type="button"
+                      title="이 행 아래에 새 행 추가"
+                      onClick={() => onAddRow?.(i)}
+                      className="p-1 rounded hover:bg-blue-50 text-blue-600"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      title="이 행 삭제"
+                      onClick={() => onDeleteRow?.(i)}
+                      className="p-1 rounded hover:bg-red-50 text-red-500"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             );
           })}
+          <tr className="print:hidden">
+            <td colSpan={11} className="border border-slate-400 p-2 text-center bg-slate-50">
+              <button
+                type="button"
+                onClick={() => onAddRow?.(results.length - 1)}
+                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-900 font-semibold"
+              >
+                <Plus className="w-3.5 h-3.5" /> 빈 행 추가
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { extractFileText } from "@/lib/fileExtract";
 
 const ALLOWED_USERNAME = "i0215130";
 
@@ -63,7 +64,12 @@ export default function DataManagement() {
 
       let fileUrl: string | null = null;
       let fileName: string | null = null;
+      let extractedText = "";
       if (file) {
+        // Try to parse text from PDF/Excel/text file so AI can RAG over it.
+        toast.info("파일 텍스트 추출 중...");
+        extractedText = await extractFileText(file);
+
         const path = `${uid}/${Date.now()}_${file.name}`;
         const { error: upErr } = await supabase.storage.from("reference-materials").upload(path, file);
         if (upErr) throw upErr;
@@ -72,11 +78,16 @@ export default function DataManagement() {
         fileName = file.name;
       }
 
+      // Merge user-typed content with file-extracted text so both feed the AI context.
+      const mergedContent = [content.trim(), extractedText.trim() ? `\n\n[첨부파일 추출 텍스트: ${fileName}]\n${extractedText.trim()}` : ""]
+        .filter(Boolean)
+        .join("");
+
       const { error } = await supabase.from("reference_materials").insert({
         uploaded_by: uid,
         title: title.trim(),
         description: description.trim() || null,
-        content: content.trim() || null,
+        content: mergedContent || null,
         file_url: fileUrl,
         file_name: fileName,
       });
