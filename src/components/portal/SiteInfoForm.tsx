@@ -149,6 +149,31 @@ export default function SiteInfoForm() {
     });
   };
 
+  const handleAddRow = (afterIndex: number) => {
+    setResults((prev) => {
+      const base = prev[afterIndex];
+      const empty: RiskResult = {
+        category: base?.category ?? "Man(인적)",
+        riskType: "무리한동작",
+        hazardDescription: "",
+        currentMeasure: "",
+        currentFrequency: 1,
+        currentSeverity: 1,
+        improvementMeasure: "",
+        improvedFrequency: 1,
+        improvedSeverity: 1,
+      };
+      const insertAt = Math.max(0, Math.min(prev.length, afterIndex + 1));
+      const next = [...prev];
+      next.splice(insertAt, 0, empty);
+      return next;
+    });
+  };
+
+  const handleDeleteRow = (index: number) => {
+    setResults((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handlePrint = () => {
     if (results.length === 0) {
       toast.error("출력할 분석 결과가 없습니다.");
