@@ -113,7 +113,7 @@ const DEFAULT_EDUCATION = `1. 안전사고 발생원인
 4. 유사 안전사고 발생사례
 5. 안전작업수칙`;
 
-export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult }: RiskResultsTableProps) {
+export default function RiskResultsTable({ results, formInfo, uploadedImages, onUpdateResult, onAddRow, onDeleteRow }: RiskResultsTableProps) {
   const [educationContent, setEducationContent] = useState(DEFAULT_EDUCATION);
 
   const th = "border border-slate-400 py-1.5 px-2 text-xs font-bold text-center bg-slate-100 text-slate-800 align-middle";
