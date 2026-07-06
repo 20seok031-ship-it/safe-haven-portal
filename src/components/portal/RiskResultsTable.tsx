@@ -182,6 +182,7 @@ export default function RiskResultsTable({ results, formInfo, uploadedImages, on
             <th colSpan={3} className={th}>현재 위험도</th>
             <th rowSpan={2} className={`${th} min-w-[140px]`}>개선 대책</th>
             <th colSpan={3} className={th}>개선후위험도</th>
+            <th rowSpan={2} className={`${th} w-[60px] print:hidden`}>편집</th>
           </tr>
           <tr>
             <th className={`${th} w-[40px]`}>빈도</th>
