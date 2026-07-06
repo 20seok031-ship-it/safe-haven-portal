@@ -7,7 +7,7 @@ export default function PortalHome() {
       <section className="relative bg-gradient-to-b from-blue-100 via-blue-50 to-white">
         <div className="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-blue-600">
-            EHS AI Assistant
+            DN_EHS AI assistant
           </h1>
           <p className="mt-6 text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             인공지능 기술로 실현하는 산업안전보건의 미래. 현장 위험성평가부터 위험요인
