@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Plus, Trash2 } from "lucide-react";
 
 /** Auto-resizing textarea that grows with content from initial render — no click required. */
 function AutoTextarea({
